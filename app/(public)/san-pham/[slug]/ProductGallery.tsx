@@ -102,8 +102,14 @@ export default function ProductGallery({ images, alt, priorityFirst = true }: Pr
                 className={`product-gallery-thumb ${i === idx ? 'is-active' : ''}`}
                 onClick={() => setActive(i)}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt={`${alt} — ảnh ${i + 1}`} loading="lazy" decoding="async" />
+                <Image
+                  src={src}
+                  alt={`${alt} — ảnh ${i + 1}`}
+                  width={72}
+                  height={72}
+                  sizes="72px"
+                  loading="lazy"
+                />
               </button>
             </li>
           ))}
