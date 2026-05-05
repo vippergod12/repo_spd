@@ -7,6 +7,7 @@
 
 import type { Category, Product } from '../types';
 import { getSaleInfo } from '../utils/sale';
+import { htmlToPlainText } from '../server/sanitize-html';
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -75,13 +76,16 @@ export function productJsonLd(product: Product): Record<string, unknown> {
       ? [product.image_url]
       : [];
 
+  // JSON-LD description phải là plain text — strip HTML markup từ rich editor.
+  const descriptionText = htmlToPlainText(product.description ?? '').trim();
+
   return {
     '@context': 'https://schema.org',
     '@type': 'Product',
     '@id': url,
     name: product.name,
     description:
-      product.description?.trim() ||
+      descriptionText ||
       `${product.name} — ${product.category_name ?? 'Sản phẩm'} tại ${SITE_NAME}.`,
     image: allImages.map((src) => absoluteUrl(src)),
     sku: `TS-${product.id}`,

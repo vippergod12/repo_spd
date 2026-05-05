@@ -2507,7 +2507,249 @@ input[type="reset"]:disabled,
 .product-detail-description {
   color: var(--text-muted);
   line-height: 1.7;
+}
+.product-detail-description.product-description-empty {
   white-space: pre-wrap;
+}
+
+/* ---------- Rich text rendered content (public side) ----------
+   Áp dụng cho mô tả sản phẩm và bất cứ chỗ nào khác render HTML từ TipTap.
+   Override chỉ ở scope `.product-description-html` để không đụng các text
+   khác trên trang. */
+.product-description-html { color: var(--text); line-height: 1.7; }
+.product-description-html p { margin: 0 0 14px; }
+.product-description-html p:last-child { margin-bottom: 0; }
+.product-description-html h2,
+.product-description-html h3,
+.product-description-html h4 {
+  font-family: var(--font-display);
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 22px 0 10px;
+  letter-spacing: -0.01em;
+}
+.product-description-html h2 { font-size: 22px; }
+.product-description-html h3 { font-size: 18px; }
+.product-description-html h4 { font-size: 16px; }
+.product-description-html strong, .product-description-html b { font-weight: 700; color: var(--text); }
+.product-description-html em, .product-description-html i { font-style: italic; }
+.product-description-html u { text-decoration: underline; text-underline-offset: 3px; }
+.product-description-html s, .product-description-html del { text-decoration: line-through; opacity: 0.7; }
+.product-description-html ul,
+.product-description-html ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+.product-description-html li { margin: 4px 0; line-height: 1.65; }
+.product-description-html ul li { list-style: disc; }
+.product-description-html ol li { list-style: decimal; }
+.product-description-html blockquote {
+  margin: 16px 0;
+  padding: 12px 18px;
+  border-left: 3px solid var(--accent);
+  background: var(--bg-cream);
+  color: var(--text);
+  font-style: italic;
+  border-radius: 0 6px 6px 0;
+}
+.product-description-html a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.product-description-html a:hover { color: var(--primary-hover); }
+.product-description-html code {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 0.9em;
+  background: var(--bg-cream);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.product-description-html pre {
+  margin: 14px 0;
+  padding: 14px 16px;
+  background: #1a1f1d;
+  color: #e9efe9;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.product-description-html pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+}
+
+/* ---------- Rich Text Editor (admin) ---------- */
+.rte-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-body);
+}
+.rte-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.rte-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.rte-wrapper {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.rte-wrapper:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(15, 114, 81, 0.12);
+}
+.rte-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--bg-cream);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+.rte-toolbar-skeleton {
+  height: 42px;
+  background: var(--bg-cream);
+}
+.rte-toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.rte-toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+.rte-btn {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 5px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.rte-btn:hover:not(:disabled) {
+  background: #fff;
+  border-color: var(--border);
+}
+.rte-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.rte-btn.is-active {
+  background: var(--mint-900, #0a3f31);
+  color: #fff;
+  border-color: var(--mint-900, #0a3f31);
+}
+.rte-btn.is-active strong,
+.rte-btn.is-active em,
+.rte-btn.is-active span { color: #fff; }
+
+.rte-content-wrap {
+  background: var(--surface);
+  padding: 14px 16px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+.rte-content {
+  outline: none;
+  min-height: 100%;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.rte-content > div,
+.rte-content .ProseMirror {
+  outline: none;
+  min-height: 100%;
+}
+.rte-content p { margin: 0 0 10px; }
+.rte-content p:last-child { margin-bottom: 0; }
+.rte-content h2 { font-size: 20px; font-weight: 600; margin: 16px 0 8px; line-height: 1.3; }
+.rte-content h3 { font-size: 17px; font-weight: 600; margin: 14px 0 6px; line-height: 1.3; }
+.rte-content strong { font-weight: 700; }
+.rte-content em { font-style: italic; }
+.rte-content u { text-decoration: underline; text-underline-offset: 3px; }
+.rte-content s { text-decoration: line-through; opacity: 0.7; }
+.rte-content ul, .rte-content ol { margin: 0 0 10px; padding-left: 22px; }
+.rte-content ul li { list-style: disc; }
+.rte-content ol li { list-style: decimal; }
+.rte-content li { margin: 3px 0; }
+.rte-content blockquote {
+  margin: 10px 0;
+  padding: 8px 14px;
+  border-left: 3px solid var(--accent);
+  color: var(--text-muted);
+  font-style: italic;
+  background: var(--bg-cream);
+  border-radius: 0 4px 4px 0;
+}
+.rte-content a { color: var(--primary); text-decoration: underline; }
+
+/* Placeholder cho ProseMirror khi rỗng */
+.rte-content .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-muted);
+  pointer-events: none;
+  height: 0;
+}
+.rte-content.is-empty::before {
+  /* Backup placeholder via attr — TipTap không tự tạo placeholder nếu thiếu
+     extension; chúng ta hiển thị placeholder qua data-placeholder ở wrapper. */
+  content: '';
+}
+.rte-skeleton {
+  background: var(--bg-cream);
+  border-radius: 0;
+}
+
+.rte-field.is-disabled .rte-wrapper {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .rte-toolbar { padding: 6px 8px; gap: 2px; }
+  .rte-btn { min-width: 28px; height: 28px; font-size: 13px; padding: 0 6px; }
+  .rte-toolbar-sep { margin: 0 2px; }
+  .rte-content-wrap { padding: 12px 14px; }
+  .rte-content { font-size: 13px; }
 }
 
 .product-detail-cta {

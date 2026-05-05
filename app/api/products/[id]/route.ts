@@ -10,6 +10,7 @@ import {
   slugify,
   unauthorized,
 } from '@/lib/server/http';
+import { sanitizeHtml } from '@/lib/server/sanitize-html';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -188,13 +189,16 @@ export async function PUT(req: NextRequest, ctx: RouteCtx) {
   const cover = images[0] ?? null;
   const slug = (body.slug && body.slug.trim()) || slugify(name);
   const isActive = body.is_active ?? true;
+  // Sanitize HTML description từ rich text editor (xem POST handler để biết lý do)
+  const descriptionRaw = (body.description ?? '').trim();
+  const description = descriptionRaw ? sanitizeHtml(descriptionRaw) || null : null;
 
   const rows = (await sql`
     UPDATE products
     SET category_id = ${categoryId},
         name = ${name},
         slug = ${slug},
-        description = ${body.description ?? null},
+        description = ${description},
         price = ${price},
         sale_price = ${sale.salePrice},
         sale_end_at = ${sale.saleEndAt},

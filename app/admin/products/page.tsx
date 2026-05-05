@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { api } from '@/lib/api-client';
 import type { Category, Product } from '@/lib/types';
 import Modal from '@/components/Modal';
@@ -11,6 +12,21 @@ import Pagination from '@/components/Pagination';
 import RowActions from '@/components/RowActions';
 import { formatVnd } from '@/lib/utils/format';
 import { fromDatetimeLocalValue, getSaleInfo, toDatetimeLocalValue } from '@/lib/utils/sale';
+
+// TipTap nặng (~80KB) → dynamic import để không nhét vào initial admin bundle.
+// ssr:false vì TipTap dùng DOM API.
+const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), {
+  ssr: false,
+  loading: () => (
+    <div className="rte-field">
+      <span className="rte-label">Mô tả</span>
+      <div className="rte-wrapper">
+        <div className="rte-toolbar rte-toolbar-skeleton" />
+        <div className="rte-content rte-skeleton" style={{ minHeight: 144 }} />
+      </div>
+    </div>
+  ),
+});
 
 interface FormState {
   id?: number;
@@ -438,14 +454,15 @@ export default function AdminProductsPage() {
             hint="Khách hàng sẽ chọn 1 màu khi liên hệ qua Zalo. Để trống nếu sản phẩm không có biến thể màu."
             suggestions={COLOR_SUGGESTIONS}
           />
-          <label className="field">
-            <span>Mô tả</span>
-            <textarea
-              rows={4}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-            />
-          </label>
+          <RichTextEditor
+            label="Mô tả sản phẩm"
+            value={form.description}
+            onChange={(html) => setForm({ ...form, description: html })}
+            placeholder="Mô tả chất liệu, kích thước, công dụng... Có thể in đậm, in nghiêng, gạch chân, danh sách, tiêu đề..."
+            hint="Toolbar: B (đậm) — I (nghiêng) — U (gạch chân) — H2/H3 — danh sách — căn lề — link"
+            minRows={6}
+            disabled={submitting}
+          />
           <div className="field-inline switch-row">
             <Switch
               checked={form.is_active}

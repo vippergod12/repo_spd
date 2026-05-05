@@ -14,6 +14,7 @@ import {
   SITE_URL,
   absoluteUrl,
 } from '@/lib/seo/siteConfig';
+import { ensureHtml, htmlToPlainText } from '@/lib/server/sanitize-html';
 
 export const revalidate = 60;
 
@@ -45,8 +46,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const title = sale.isOnSale
     ? `${product.name} — Giảm còn ${priceLabel}`
     : `${product.name} — ${priceLabel}`;
+  // Description từ rich text editor có thể chứa HTML — strip về plain text
+  // cho meta tag (Google không thích raw HTML trong description meta).
+  const descriptionText = htmlToPlainText(product.description ?? '').slice(0, 200);
   const description =
-    product.description?.trim()?.slice(0, 200) ||
+    descriptionText ||
     `${product.name} — giá ${priceLabel}. Mua ngay tại ${SITE_NAME}, danh mục ${product.category_name ?? ''}.`;
   const canonical = `/san-pham/${product.slug}`;
   const image = product.image_url ? absoluteUrl(product.image_url) : undefined;
@@ -152,9 +156,18 @@ export default async function ProductDetailPage({ params }: Props) {
               ) : (
                 <div className="product-detail-price">{formatVnd(product.price)}</div>
               )}
-              <p className="product-detail-description">
-                {product.description || 'Chưa có mô tả cho sản phẩm này.'}
-              </p>
+              {product.description && product.description.trim() ? (
+                <div
+                  className="product-detail-description product-description-html"
+                  /* Dữ liệu mới đã sanitize ở server khi lưu; dữ liệu cũ
+                     (plain text seed) được wrap & escape qua ensureHtml. */
+                  dangerouslySetInnerHTML={{ __html: ensureHtml(product.description) }}
+                />
+              ) : (
+                <p className="product-detail-description product-description-empty">
+                  Chưa có mô tả cho sản phẩm này.
+                </p>
+              )}
 
               <ProductDetailCta product={product} />
 

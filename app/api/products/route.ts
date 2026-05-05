@@ -9,6 +9,7 @@ import {
   slugify,
   unauthorized,
 } from '@/lib/server/http';
+import { sanitizeHtml } from '@/lib/server/sanitize-html';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -128,13 +129,17 @@ export async function POST(req: NextRequest) {
   const cover = images[0] ?? null;
   const slug = (body.slug && body.slug.trim()) || slugify(name);
   const isActive = body.is_active ?? true;
+  // Description từ rich text editor có thể chứa HTML — sanitize trước khi lưu
+  // để chặn <script>, on* attributes, javascript:URL... Chuỗi rỗng → null.
+  const descriptionRaw = (body.description ?? '').trim();
+  const description = descriptionRaw ? sanitizeHtml(descriptionRaw) || null : null;
 
   try {
     const rows = (await sql`
       INSERT INTO products (category_id, name, slug, description, price,
                             sale_price, sale_end_at, image_url, images,
                             colors, is_active)
-      VALUES (${categoryId}, ${name}, ${slug}, ${body.description ?? null}, ${price},
+      VALUES (${categoryId}, ${name}, ${slug}, ${description}, ${price},
               ${salePrice}, ${saleEndIso},
               ${cover}, ${images}::text[],
               ${colors}::text[], ${isActive})
