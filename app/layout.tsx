@@ -58,16 +58,21 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-// Rajdhani / Orbitron: gaming sans-serif (display & numeric) — KHÔNG có
-// Vietnamese subset, browser sẽ fallback per-character cho dấu "ô/ậ/ợ/ằ"
-// → mất đồng nhất. Thêm Be Vietnam Pro (full VN, vibe modern grotesque)
-// làm fallback ưu tiên trước Inter để tone Việt vẫn nhìn nhất quán.
+// Font strategy (đồng nhất toàn site, tránh per-character fallback):
+//   - Be Vietnam Pro: PRIMARY display + body (full Vietnamese subset, 5 weights,
+//     tone modern grotesque hợp gaming). Mọi text có khả năng chứa ô/ậ/ợ/ằ
+//     đều render bằng font này → không còn cảnh "1 ký tự rời ra".
+//   - JetBrains Mono: PRIMARY numeric (giá, K/D, mã acc, page number...).
+//     Monospace + lining/tabular figures → các con số xếp thẳng cột.
+//   - Rajdhani / Orbitron: chỉ dùng decorative cho text TOÀN LATIN
+//     (R.E.P.O brand, badge "MYTHIC/SALE", header bảng all-caps EN).
 const GOOGLE_FONTS_HREF =
   'https://fonts.googleapis.com/css2?' +
-  'family=Rajdhani:wght@400;500;600;700&' +
   'family=Be+Vietnam+Pro:wght@400;500;600;700;800&' +
+  'family=JetBrains+Mono:wght@400;500;600;700&' +
+  'family=Rajdhani:wght@500;600;700&' +
+  'family=Orbitron:wght@600;700;800&' +
   'family=Inter:wght@400;500;600;700&' +
-  'family=Orbitron:wght@500;700;800&' +
   'display=swap';
 
 export default function RootLayout({

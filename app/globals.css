@@ -67,16 +67,22 @@
   --radius-sm: 4px;
   --radius-md: 8px;
 
-  /* Font display chain — Rajdhani/Orbitron không có VN subset, "Be Vietnam Pro"
-     đặt ngay sau để fallback tự động glyph "ô/ậ/ợ/ằ..." sao cho đồng nhất tone
-     với chữ ASCII xung quanh, tránh hiệu ứng "1 chữ rời ra" do mix Inter. */
-  --font-display: 'Rajdhani', 'Orbitron', 'Be Vietnam Pro', 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-numeric: 'Rajdhani', 'Be Vietnam Pro', 'JetBrains Mono', 'Inter', monospace;
-  /* Heading lớn có nhiều dấu tiếng Việt (Big CTA, process-head, hero) →
-     dùng riêng để Be Vietnam Pro nhận luôn cả ASCII letters, đồng nhất
-     toàn câu thay vì chỉ vài ký tự dấu bị fallback. */
-  --font-display-vn: 'Be Vietnam Pro', 'Rajdhani', 'Inter', system-ui, sans-serif;
+  /* === Font system (consistent across whole site) =====================
+     Priority: Be Vietnam Pro everywhere → full Vietnamese subset, không
+     bao giờ rơi vào fallback per-character cho dấu "ô/ậ/ợ/ằ". Rajdhani
+     & Orbitron CHỈ giữ cho decorative all-Latin (badge EN, brand mark). */
+  --font-display: 'Be Vietnam Pro', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Be Vietnam Pro', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Numeric: JetBrains Mono cho monospace tabular figures (giá, K/D, page
+     number, mã acc). Be Vietnam Pro fallback nếu lẫn ký tự VN ("Tier", "Trang"). */
+  --font-numeric: 'JetBrains Mono', 'Be Vietnam Pro', 'Menlo', 'Consolas', monospace;
+  /* Decorative gaming font — CHỈ dùng cho text Latin all-caps thuần
+     (badge MYTHIC/SALE, brand R.E.P.O, header bảng EN). KHÔNG đặt cho
+     bất kỳ chỗ nào có khả năng render tiếng Việt. */
+  --font-decor: 'Rajdhani', 'Orbitron', 'Be Vietnam Pro', sans-serif;
+  /* Backward-compat alias — giờ trùng --font-display, mọi nơi đang dùng
+     cũng auto-nhận font Vietnamese-friendly. */
+  --font-display-vn: var(--font-display);
   --font-serif: var(--font-display);
   --serif: var(--font-display);
 }
@@ -120,12 +126,40 @@ body {
   font-weight: 400;
   font-size: 15px;
   line-height: 1.6;
-  font-feature-settings: 'kern';
+  font-feature-settings: 'kern', 'liga', 'calt';
   letter-spacing: 0;
   color: var(--text);
   background: transparent;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* Tabular + lining digits cho mọi vị trí render con số → giá, K/D,
+   page number, mã acc... đều xếp thẳng cột, không bị bù trừ kerning. */
+.cell-num,
+.cell-mono,
+.cell-id,
+.cell-code,
+.price-cell,
+.price-sale,
+.price-original,
+.price,
+.price-original-text,
+.product-card-price,
+.acc-meta,
+.tier-badge,
+.pagination,
+.pagination button,
+.pagination-info,
+.stat-value,
+.stat-num,
+.acc-code,
+.acc-code-placeholder,
+[class*='-num'],
+[class*='num-'] {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1, 'kern' 1;
 }
 
 body::before {
@@ -6920,18 +6954,18 @@ input[type="reset"]:disabled,
 .navbar-links a, .navbar-links button { color: var(--text); }
 .navbar-links button { cursor: pointer; }
 
-/* navbar brand: dùng kí tự "R" hình lục giác */
+/* navbar brand: dùng kí tự "R" hình lục giác (all-Latin → font-decor OK) */
 .brand-mark {
   background: linear-gradient(135deg, var(--primary) 0%, var(--accent-warm) 100%);
   color: #0a0e14;
-  font-family: var(--font-display);
-  font-weight: 800;
+  font-family: var(--font-decor);
+  font-weight: 700;
   letter-spacing: -1px;
   border-radius: 6px;
   box-shadow: 0 0 16px rgba(245, 166, 35, 0.4);
 }
 .navbar-brand {
-  font-family: var(--font-display);
+  font-family: var(--font-decor);
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -6994,31 +7028,31 @@ h1, h2 { letter-spacing: -1px; font-weight: 700; }
   color: #fff;
   padding: 6px 18px;
   border-radius: 4px;
-  font-family: var(--font-display);
+  font-family: var(--font-decor);
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
 
-/* Sale badge: cam đậm, glow */
+/* Sale badge: cam đậm, glow (text "SALE" / "SOLD" toàn Latin) */
 .sale-badge {
   background: linear-gradient(135deg, var(--accent-warm), var(--primary));
   color: #0a0e14;
-  font-family: var(--font-display);
-  font-weight: 800;
+  font-family: var(--font-decor);
+  font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
   box-shadow: 0 0 14px rgba(255, 122, 24, 0.5);
 }
 
-/* -------- PUBG TIER BADGE -------- */
+/* -------- PUBG TIER BADGE (text Latin: BRONZE/GOLD/CONQUEROR…) -------- */
 .tier-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
   border-radius: 4px;
-  font-family: var(--font-display);
+  font-family: var(--font-decor);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 1.5px;
@@ -7070,14 +7104,14 @@ h1, h2 { letter-spacing: -1px; font-weight: 700; }
   margin-bottom: 6px;
 }
 
-/* -------- Mythic indicator / hot tag -------- */
+/* -------- Mythic indicator / hot tag (text "MYTHIC" Latin) -------- */
 .mythic-pill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 3px 8px;
   border-radius: 3px;
-  font-family: var(--font-display);
+  font-family: var(--font-decor);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -7315,8 +7349,8 @@ h1, h2 { letter-spacing: -1px; font-weight: 700; }
 .footer-logo .brand-mark {
   background: var(--primary);
   color: #0a0e14;
-  font-family: var(--font-display);
-  font-weight: 800;
+  font-family: var(--font-decor);
+  font-weight: 700;
   box-shadow: 0 0 14px rgba(245, 166, 35, 0.45);
 }
 .footer-logo-text {
@@ -7654,8 +7688,8 @@ input[type="url"]:focus, textarea:focus, select:focus {
 .trending-badge {
   background: var(--accent);
   color: #0a0e14;
-  font-family: var(--font-display);
-  font-weight: 800;
+  font-family: var(--font-decor);
+  font-weight: 700;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
@@ -7876,12 +7910,13 @@ td { border-bottom: 1px solid var(--border); }
   background: var(--bg-dark, var(--bg));
   border: 1px solid var(--border);
   color: var(--text-muted);
-  font-family: var(--font-display);
+  font-family: var(--font-numeric);
   font-weight: 600;
   font-size: 13px;
   letter-spacing: 0.5px;
   border-radius: 8px;
   transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 .pagination-btn:hover:not(:disabled):not(.is-active) {
   background: var(--primary-soft);
