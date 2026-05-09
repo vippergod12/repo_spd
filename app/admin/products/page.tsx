@@ -256,20 +256,6 @@ export default function AdminProductsPage() {
     }
   }
 
-  async function toggleActive(p: Product) {
-    setProducts((prev) =>
-      prev.map((it) => (it.id === p.id ? { ...it, is_active: !p.is_active } : it)),
-    );
-    try {
-      await api.setProductActive(p.id, !p.is_active);
-    } catch (err) {
-      setProducts((prev) =>
-        prev.map((it) => (it.id === p.id ? { ...it, is_active: p.is_active } : it)),
-      );
-      alert(err instanceof Error ? err.message : 'Cập nhật trạng thái thất bại');
-    }
-  }
-
   async function toggleSold(p: Product) {
     const next = !(p.is_sold === true);
     setProducts((prev) =>
@@ -350,15 +336,14 @@ export default function AdminProductsPage() {
               <col style={{ width: 60 }} />
               <col style={{ width: 88 }} />
               <col style={{ width: 130 }} />
-              <col style={{ width: 300 }} />
+              <col style={{ width: 320 }} />
               <col style={{ width: 130 }} />
               <col style={{ width: 88 }} />
-              <col style={{ width: 170 }} />
               <col style={{ width: 180 }} />
+              <col style={{ width: 200 }} />
               <col style={{ width: 80 }} />
               <col style={{ width: 80 }} />
-              <col style={{ width: 96 }} />
-              <col style={{ width: 160 }} />
+              <col style={{ width: 180 }} />
               <col style={{ width: 64 }} />
             </colgroup>
             <thead>
@@ -373,7 +358,6 @@ export default function AdminProductsPage() {
                 <th>Giá</th>
                 <th>K/D</th>
                 <th>Skin</th>
-                <th>Hiển thị</th>
                 <th>Tình trạng</th>
                 <th aria-label="Hành động" />
               </tr>
@@ -448,13 +432,6 @@ export default function AdminProductsPage() {
                           ★
                         </span>
                       )}
-                    </td>
-                    <td className="cell-center">
-                      <Switch
-                        checked={p.is_active}
-                        onChange={() => toggleActive(p)}
-                        ariaLabel={p.is_active ? 'Ẩn acc' : 'Hiển thị acc'}
-                      />
                     </td>
                     <td>
                       <div className="stock-cell">

@@ -7926,8 +7926,8 @@ td { border-bottom: 1px solid var(--border); }
 .table-wrapper--scroll-x::-webkit-scrollbar-thumb:hover { background: var(--primary-hover, #ffb84d); }
 
 .data-table--products {
-  /* Total = 60+88+130+300+130+88+170+180+80+80+96+160+64 = 1626px */
-  min-width: 1626px;
+  /* Total = 60+88+130+320+130+88+180+200+80+80+180+64 = 1600px */
+  min-width: 1600px;
   table-layout: fixed;
 }
 .data-table--products thead {
@@ -8085,16 +8085,16 @@ td { border-bottom: 1px solid var(--border); }
 /* Disable the global ≤380px stacked-card override for products table —
    it has too many columns; keep horizontal scroll on every viewport. */
 @media (max-width: 768px) {
-  .data-table--products { min-width: 1626px; font-size: 13px; }
+  .data-table--products { min-width: 1600px; font-size: 13px; }
   .data-table--products thead th,
   .data-table--products tbody td { padding: 10px 10px; }
 }
 @media (max-width: 480px) {
-  .data-table--products { min-width: 1626px; font-size: 12px; }
+  .data-table--products { min-width: 1600px; font-size: 12px; }
   .data-table--products .cell-muted { display: revert; }
 }
 @media (max-width: 380px) {
-  .data-table--products                      { display: table !important; min-width: 1626px; }
+  .data-table--products                      { display: table !important; min-width: 1600px; }
   .data-table--products thead                { display: table-header-group !important; }
   .data-table--products tbody                { display: table-row-group !important; gap: 0; }
   .data-table--products tbody tr             {
