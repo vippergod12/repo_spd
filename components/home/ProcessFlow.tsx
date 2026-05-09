@@ -1,12 +1,9 @@
 import Reveal from '../Reveal';
 
 /**
- * Section "Quy trình 5 bước" — minh hoạ vòng đời 1 đơn hàng từ báo giá đến khi
- * hàng tới tay khách. Mục tiêu: cụ thể hoá cam kết tốc độ + minh bạch quy trình
- * → tăng độ tin cậy cho khách hàng B2B.
- *
- * Layout: 5 cột trên desktop với đường nối ngang bằng pseudo-element giữa các
- * step; stack dọc trên mobile (đường nối chuyển sang dọc).
+ * "Quy trình mua acc 5 bước" — minh hoạ flow từ lúc khách chọn acc đến
+ * khi đăng nhập Steam thành công. Mục tiêu: khách mới mua acc lần đầu
+ * không phải lo lắng "acc có thật không / có lừa không".
  */
 
 interface Step {
@@ -19,33 +16,33 @@ interface Step {
 const STEPS: Step[] = [
   {
     num: '01',
-    title: 'Tiếp nhận & Báo giá',
-    body: 'Gửi yêu cầu qua Zalo / điện thoại. Đội tư vấn phản hồi kèm bảng giá chi tiết theo từng size, định lượng vải.',
-    duration: '30 phút',
+    title: 'Chọn acc & inbox shop',
+    body: 'Browse kho acc hoặc gửi yêu cầu cụ thể (rank, skin, ngân sách). Nhân viên shop tư vấn miễn phí 24/7.',
+    duration: '< 5 phút',
   },
   {
     num: '02',
-    title: 'Duyệt mẫu & Thiết kế',
-    body: 'Chốt kiểu túi, kích thước, vị trí in logo. Gửi mock-up duyệt trước khi sản xuất hàng loạt.',
-    duration: '1–2 ngày',
+    title: 'Xem demo in-game',
+    body: 'Shop livestream / quay video Steam đang đăng nhập acc, soi inventory, match history theo yêu cầu. Tránh acc fake.',
+    duration: '5–15 phút',
   },
   {
     num: '03',
-    title: 'Sản xuất tại xưởng',
-    body: 'Cắt — may — in tại xưởng MINT TP.HCM. Theo dõi tiến độ qua hình ảnh / video gửi thẳng cho khách.',
-    duration: '5–7 ngày',
+    title: 'Thanh toán & nhận info',
+    body: 'Chuyển khoản / MoMo / banking / crypto. Sau khi shop nhận tiền, info acc + mail full quyền gửi qua chat riêng tư.',
+    duration: '< 5 phút',
   },
   {
     num: '04',
-    title: 'Kiểm định KCS',
-    body: '100% sản phẩm được kiểm tra đường may, lệch in, kích thước. Loại bỏ trước khi đóng gói.',
-    duration: '1 ngày',
+    title: 'Đổi mail & mật khẩu',
+    body: 'Shop hướng dẫn từng bước đổi hotmail, mật khẩu Steam, gắn 2FA mới của bạn — đảm bảo an toàn vĩnh viễn.',
+    duration: '5 phút',
   },
   {
     num: '05',
-    title: 'Giao hàng toàn quốc',
-    body: 'Đối tác vận chuyển (GHN / GHTK / nhà xe) — 63/63 tỉnh thành. Hỗ trợ đổi trả nếu lỗi sản xuất.',
-    duration: '1–3 ngày',
+    title: 'Bảo hành trọn đời',
+    body: 'Có vấn đề về acc bất cứ lúc nào (mất acc, mail bị thu hồi) → liên hệ shop, hỗ trợ 100% hoặc đền tiền.',
+    duration: 'Forever',
   },
 ];
 
@@ -57,13 +54,13 @@ export default function ProcessFlow() {
           <header className="process-head">
             <span className="section-eyebrow">Quy trình minh bạch</span>
             <h2 className="process-head-title">
-              Từ <em>ý tưởng</em> đến tay khách —<br />
-              chỉ trong <strong>7 ngày</strong>
+              Từ <em>chọn acc</em> tới chiến chicken dinner —<br />
+              chỉ trong <strong>15 phút</strong>
             </h2>
             <p className="process-head-lead">
-              Toàn bộ quy trình diễn ra tại xưởng MINT — không qua đối tác gia
-              công bên ngoài. Khách có thể tới xưởng kiểm tra trực tiếp bất kỳ
-              công đoạn nào.
+              Mọi giao dịch đều có demo in-game trước, có hợp đồng (bằng tin nhắn
+              / video) và bảo hành trọn đời. Bạn không cần lo về scam — shop
+              ưu tiên uy tín hơn lợi nhuận trước mắt.
             </p>
           </header>
         </Reveal>

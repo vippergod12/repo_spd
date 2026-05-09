@@ -73,9 +73,9 @@ export default function AdminStoryPage() {
     <div className="admin-story-page">
       <header className="admin-page-header">
         <div>
-          <h1>Câu chuyện MINT</h1>
+          <h1>Câu chuyện R.E.P.O</h1>
           <p className="admin-page-sub">
-            Ảnh hiển thị bên trái section &quot;Câu chuyện MINT&quot; ở trang chủ. Có thể upload
+            Ảnh hiển thị bên trái section &quot;Câu chuyện R.E.P.O&quot; ở trang chủ. Có thể upload
             ảnh từ máy (sẽ tự nén ~1000px) hoặc dán URL.
           </p>
         </div>

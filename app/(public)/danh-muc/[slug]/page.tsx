@@ -24,14 +24,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const description =
     category.description?.trim() ||
-    `Khám phá bộ sưu tập ${category.name} tại ${SITE_NAME}.`;
+    `Khám phá bộ sưu tập acc PUBG ${category.name} tại ${SITE_NAME}.`;
 
   return {
-    title: `${category.name} — Bộ sưu tập`,
+    title: `${category.name} — Acc PUBG`,
     description,
     alternates: { canonical: `/danh-muc/${category.slug}` },
     openGraph: {
-      title: `${category.name} — Bộ sưu tập | ${SITE_NAME}`,
+      title: `${category.name} — Acc PUBG | ${SITE_NAME}`,
       description,
       images: category.image_url ? [{ url: category.image_url }] : undefined,
     },
@@ -74,10 +74,15 @@ export default async function CategoryPage({ params }: Props) {
             <h1>{category.name}</h1>
             {category.description && <p>{category.description}</p>}
           </div>
-          <span className="badge">{products.length} sản phẩm</span>
+          <span className="badge">{products.length} acc</span>
         </div>
         {products.length === 0 ? (
-          <div className="empty-state">Chưa có sản phẩm trong danh mục này.</div>
+          <div className="empty-state">
+            Chưa có acc nào trong danh mục này. Hãy{' '}
+            <Link href="/tu-van" style={{ color: 'var(--primary)' }}>
+              đặt yêu cầu tìm acc →
+            </Link>
+          </div>
         ) : (
           <div className="product-grid">
             {products.map((p) => (

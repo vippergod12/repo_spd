@@ -80,6 +80,8 @@ export default function Navbar() {
   }
 
   const isHomeActive = pathname === '/';
+  const isShopActive = pathname === '/cua-hang';
+  const isWarrantyActive = pathname === '/bao-hanh';
   const isAboutActive = pathname === '/gioi-thieu';
   const isConsultActive = pathname === '/tu-van';
   const isAdminActive = pathname?.startsWith('/admin');
@@ -95,8 +97,8 @@ export default function Navbar() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >
-          <span className="brand-mark">M</span>
-          <span>MINT</span>
+          <span className="brand-mark">R</span>
+          <span>R.E.P.O</span>
         </Link>
 
         <nav className={`navbar-links ${open ? 'open' : ''}`}>
@@ -106,6 +108,13 @@ export default function Navbar() {
             onClick={closeMobile}
           >
             Trang chủ
+          </Link>
+          <Link
+            href="/cua-hang"
+            className={isShopActive ? 'active' : ''}
+            onClick={closeMobile}
+          >
+            Kho Acc
           </Link>
           <div
             className={`dropdown ${dropdownOpen ? 'open' : ''}`}
@@ -122,10 +131,10 @@ export default function Navbar() {
                 e.currentTarget.blur();
               }}
             >
-              Danh mục
+              Phân loại
             </button>
             <div className="dropdown-menu" role="menu">
-              {categories.length === 0 && <span className="dropdown-empty">Chưa có danh mục</span>}
+              {categories.length === 0 && <span className="dropdown-empty">Đang tải danh mục</span>}
               {categories.map((c) => (
                 <Link
                   key={c.id}
@@ -139,6 +148,13 @@ export default function Navbar() {
             </div>
           </div>
           <Link
+            href="/bao-hanh"
+            className={isWarrantyActive ? 'active' : ''}
+            onClick={closeMobile}
+          >
+            Bảo hành
+          </Link>
+          <Link
             href="/gioi-thieu"
             className={isAboutActive ? 'active' : ''}
             onClick={closeMobile}
@@ -150,7 +166,7 @@ export default function Navbar() {
             className={`navbar-cta ${isConsultActive ? 'is-active' : ''}`}
             onClick={closeMobile}
           >
-            Báo giá / Đặt hàng
+            Tìm Acc theo yêu cầu
           </Link>
           {username && (
             <>

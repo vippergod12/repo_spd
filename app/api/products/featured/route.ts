@@ -14,11 +14,16 @@ export async function GET() {
            p.sale_price, p.sale_end_at,
            p.image_url, p.images, p.colors,
            p.is_active, p.featured_rank,
+           p.account_code, p.tier, p.steam_level, p.pubg_level,
+           p.server, p.hours_played, p.skin_count, p.has_mythic,
+           p.register_method, p.gcoin_balance, p.is_sold,
+           p.kd_ratio, p.win_rate,
            p.created_at, p.updated_at,
            c.name AS category_name, c.slug AS category_slug
     FROM products p
     JOIN categories c ON c.id = p.category_id
     WHERE p.featured_rank IS NOT NULL
+      AND p.is_sold = FALSE
     ORDER BY p.featured_rank ASC
     LIMIT ${MAX_FEATURED}
   `;
@@ -62,7 +67,7 @@ export async function PUT(req: NextRequest) {
   const finalIds = ids.filter((id) => validSet.has(id));
 
   if (finalIds.length === 0) {
-    return badRequest('Không có sản phẩm hợp lệ nào trong danh sách');
+    return badRequest('Không có account hợp lệ nào trong danh sách');
   }
 
   await sql`

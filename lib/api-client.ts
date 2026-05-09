@@ -26,7 +26,7 @@ export type ProductDetailBundle = {
   featured?: Product[];
 };
 
-const TOKEN_KEY = 'shop_admin_token';
+const TOKEN_KEY = 'repo_admin_token';
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
@@ -47,7 +47,6 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = getToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  // Admin cần data tươi → bypass CDN cache cho GET bằng cách thêm timestamp.
   let finalPath = path;
   const method = (options.method ?? 'GET').toUpperCase();
   if (token && method === 'GET') {
@@ -97,10 +96,12 @@ export const api = {
   deleteCategory(id: number) {
     return request<void>(`/api/categories/${id}`, { method: 'DELETE' });
   },
-  listProducts(params: { category?: string | number; q?: string } = {}) {
+  listProducts(params: { category?: string | number; q?: string; tier?: string; include_sold?: boolean } = {}) {
     const search = new URLSearchParams();
     if (params.category !== undefined) search.set('category', String(params.category));
     if (params.q) search.set('q', params.q);
+    if (params.tier) search.set('tier', params.tier);
+    if (params.include_sold) search.set('include_sold', '1');
     const qs = search.toString();
     return request<Product[]>(`/api/products${qs ? `?${qs}` : ''}`);
   },
@@ -123,6 +124,12 @@ export const api = {
     return request<Product>(`/api/products/${id}`, {
       method: 'PATCH',
       body: JSON.stringify({ is_active: isActive }),
+    });
+  },
+  setProductSold(id: number, isSold: boolean) {
+    return request<Product>(`/api/products/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_sold: isSold }),
     });
   },
   deleteProduct(id: number) {

@@ -35,8 +35,8 @@ export default function LoginPage() {
     <div className="login-page">
       <div className="login-card">
         <Link href="/" className="login-back">← Về trang chủ</Link>
-        <h1>Đăng nhập admin</h1>
-        <p className="login-sub">Chỉ admin mới được thêm/sửa/xoá sản phẩm.</p>
+        <h1>R.E.P.O Admin</h1>
+        <p className="login-sub">Chỉ admin mới được thêm/sửa/xoá account.</p>
         <form onSubmit={onSubmit} className="form">
           <label className="field">
             <span>Tên đăng nhập</span>

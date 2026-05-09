@@ -53,6 +53,27 @@ function parseSale(body: { sale_price?: number | string | null; sale_end_at?: st
   return { salePrice, saleEndAt: saleEndAt ? saleEndAt.toISOString() : null, error: null };
 }
 
+function nullableInt(v: unknown): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.floor(n);
+}
+
+function nullableNum(v: unknown): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
+function nullableStr(v: unknown, maxLen = 80): string | null {
+  if (typeof v !== 'string') return null;
+  const t = v.trim();
+  if (!t) return null;
+  return t.length > maxLen ? t.slice(0, maxLen) : t;
+}
+
 export async function GET(req: NextRequest, ctx: RouteCtx) {
   const ident = parseIdent(ctx.params.id);
   if (!ident.id && !ident.slug) return badRequest('Thiếu id hoặc slug');
@@ -64,6 +85,10 @@ export async function GET(req: NextRequest, ctx: RouteCtx) {
            p.sale_price, p.sale_end_at,
            p.image_url, p.images, p.colors,
            p.is_active, p.is_hero, p.featured_rank,
+           p.account_code, p.tier, p.steam_level, p.pubg_level,
+           p.server, p.hours_played, p.skin_count, p.has_mythic,
+           p.register_method, p.gcoin_balance, p.is_sold,
+           p.kd_ratio, p.win_rate,
            p.created_at, p.updated_at,
            c.name AS category_name, c.slug AS category_slug
     FROM products p
@@ -73,7 +98,7 @@ export async function GET(req: NextRequest, ctx: RouteCtx) {
     LIMIT 1
   `) as Record<string, unknown>[];
   const product = rows[0];
-  if (!product) return notFound('Không tìm thấy sản phẩm');
+  if (!product) return notFound('Không tìm thấy account');
 
   if (!includes.related && !includes.featured) {
     return jsonOk(product, {
@@ -91,12 +116,17 @@ export async function GET(req: NextRequest, ctx: RouteCtx) {
                p.sale_price, p.sale_end_at,
                p.image_url, p.images, p.colors,
                p.is_active, p.is_hero, p.featured_rank,
+               p.account_code, p.tier, p.steam_level, p.pubg_level,
+               p.server, p.hours_played, p.skin_count, p.has_mythic,
+               p.register_method, p.gcoin_balance, p.is_sold,
+               p.kd_ratio, p.win_rate,
                p.created_at, p.updated_at,
                c.name AS category_name, c.slug AS category_slug
         FROM products p
         JOIN categories c ON c.id = p.category_id
         WHERE p.category_id = ${productCategoryId}
           AND p.id <> ${productId}
+          AND p.is_sold = FALSE
         ORDER BY p.is_active DESC, p.created_at DESC
         LIMIT ${RELATED_LIMIT}
       `
@@ -108,12 +138,17 @@ export async function GET(req: NextRequest, ctx: RouteCtx) {
                p.sale_price, p.sale_end_at,
                p.image_url, p.images, p.colors,
                p.is_active, p.featured_rank,
+               p.account_code, p.tier, p.steam_level, p.pubg_level,
+               p.server, p.hours_played, p.skin_count, p.has_mythic,
+               p.register_method, p.gcoin_balance, p.is_sold,
+               p.kd_ratio, p.win_rate,
                p.created_at, p.updated_at,
                c.name AS category_name, c.slug AS category_slug
         FROM products p
         JOIN categories c ON c.id = p.category_id
         WHERE p.featured_rank IS NOT NULL
           AND p.id <> ${productId}
+          AND p.is_sold = FALSE
         ORDER BY p.featured_rank ASC
         LIMIT ${FEATURED_LIMIT}
       `
@@ -157,41 +192,43 @@ export async function PUT(req: NextRequest, ctx: RouteCtx) {
   const ident = parseIdent(ctx.params.id);
   if (!ident.id && !ident.slug) return badRequest('Thiếu id hoặc slug');
 
-  let body: {
-    name?: string;
-    slug?: string;
-    description?: string | null;
-    price?: number | string;
-    sale_price?: number | string | null;
-    sale_end_at?: string | null;
-    image_url?: string | null;
-    images?: unknown;
-    category_id?: number | string;
-    is_active?: boolean;
-    colors?: unknown;
-  };
+  let body: Record<string, unknown>;
   try {
-    body = await req.json();
+    body = (await req.json()) as Record<string, unknown>;
   } catch {
     body = {};
   }
 
-  const name = (body.name ?? '').trim();
+  const name = (typeof body.name === 'string' ? body.name : '').trim();
   const categoryId = Number(body.category_id);
   const price = Number(body.price ?? 0);
-  if (!name) return badRequest('Tên sản phẩm không được trống');
+  if (!name) return badRequest('Tên account không được trống');
   if (!categoryId) return badRequest('Cần chọn danh mục');
   if (Number.isNaN(price) || price < 0) return badRequest('Giá không hợp lệ');
-  const sale = parseSale(body);
+  const sale = parseSale(body as { sale_price?: number | string | null; sale_end_at?: string | null });
   if (sale.error) return badRequest(sale.error);
   const colors = parseStringArray(body.colors);
-  const images = normalizeImages(body);
+  const images = normalizeImages(body as { images?: unknown; image_url?: string | null });
   const cover = images[0] ?? null;
-  const slug = (body.slug && body.slug.trim()) || slugify(name);
-  const isActive = body.is_active ?? true;
-  // Sanitize HTML description từ rich text editor (xem POST handler để biết lý do)
-  const descriptionRaw = (body.description ?? '').trim();
+  const slug = (typeof body.slug === 'string' && body.slug.trim()) || slugify(name);
+  const isActive = body.is_active === undefined ? true : Boolean(body.is_active);
+  const descriptionRaw = (typeof body.description === 'string' ? body.description : '').trim();
   const description = descriptionRaw ? sanitizeHtml(descriptionRaw) || null : null;
+
+  // PUBG fields
+  const accountCode = nullableStr(body.account_code, 40);
+  const tier = nullableStr(body.tier, 40);
+  const steamLevel = nullableInt(body.steam_level);
+  const pubgLevel = nullableInt(body.pubg_level);
+  const server = nullableStr(body.server, 20);
+  const hoursPlayed = nullableInt(body.hours_played);
+  const skinCount = nullableInt(body.skin_count);
+  const hasMythic = body.has_mythic === undefined ? false : Boolean(body.has_mythic);
+  const registerMethod = nullableStr(body.register_method, 40);
+  const gcoinBalance = nullableInt(body.gcoin_balance);
+  const isSold = body.is_sold === undefined ? false : Boolean(body.is_sold);
+  const kdRatio = nullableNum(body.kd_ratio);
+  const winRate = nullableNum(body.win_rate);
 
   const rows = (await sql`
     UPDATE products
@@ -206,6 +243,19 @@ export async function PUT(req: NextRequest, ctx: RouteCtx) {
         images = ${images}::text[],
         colors = ${colors}::text[],
         is_active = ${isActive},
+        account_code = ${accountCode},
+        tier = ${tier},
+        steam_level = ${steamLevel},
+        pubg_level = ${pubgLevel},
+        server = ${server},
+        hours_played = ${hoursPlayed},
+        skin_count = ${skinCount},
+        has_mythic = ${hasMythic},
+        register_method = ${registerMethod},
+        gcoin_balance = ${gcoinBalance},
+        is_sold = ${isSold},
+        kd_ratio = ${kdRatio},
+        win_rate = ${winRate},
         updated_at = NOW()
     WHERE (${ident.id ?? null}::int IS NOT NULL AND id = ${ident.id ?? null}::int)
        OR (${ident.slug ?? null}::text IS NOT NULL AND slug = ${ident.slug ?? null}::text)
@@ -213,9 +263,12 @@ export async function PUT(req: NextRequest, ctx: RouteCtx) {
               sale_price, sale_end_at,
               image_url, images, colors,
               is_active, is_hero, featured_rank,
+              account_code, tier, steam_level, pubg_level, server,
+              hours_played, skin_count, has_mythic, register_method,
+              gcoin_balance, is_sold, kd_ratio, win_rate,
               created_at, updated_at
   `) as Record<string, unknown>[];
-  if (!rows[0]) return notFound('Không tìm thấy sản phẩm');
+  if (!rows[0]) return notFound('Không tìm thấy account');
   return jsonOk(rows[0], { cache: 'no-store' });
 }
 
@@ -224,29 +277,39 @@ export async function PATCH(req: NextRequest, ctx: RouteCtx) {
   const ident = parseIdent(ctx.params.id);
   if (!ident.id && !ident.slug) return badRequest('Thiếu id hoặc slug');
 
-  let body: { is_active?: boolean };
+  let body: { is_active?: boolean; is_sold?: boolean };
   try {
     body = await req.json();
   } catch {
     body = {};
   }
   const fields = Object.keys(body);
-  if (!(fields.length === 1 && fields[0] === 'is_active')) {
-    return badRequest('PATCH chỉ hỗ trợ trường is_active');
+  if (fields.length !== 1 || !['is_active', 'is_sold'].includes(fields[0]!)) {
+    return badRequest('PATCH chỉ hỗ trợ trường is_active hoặc is_sold');
   }
-  const isActive = Boolean(body.is_active);
+
+  if (fields[0] === 'is_active') {
+    const isActive = Boolean(body.is_active);
+    const rows = (await sql`
+      UPDATE products
+      SET is_active = ${isActive}, updated_at = NOW()
+      WHERE (${ident.id ?? null}::int IS NOT NULL AND id = ${ident.id ?? null}::int)
+         OR (${ident.slug ?? null}::text IS NOT NULL AND slug = ${ident.slug ?? null}::text)
+      RETURNING id, is_active, is_sold
+    `) as Record<string, unknown>[];
+    if (!rows[0]) return notFound('Không tìm thấy account');
+    return jsonOk(rows[0], { cache: 'no-store' });
+  }
+
+  const isSold = Boolean(body.is_sold);
   const rows = (await sql`
     UPDATE products
-    SET is_active = ${isActive}, updated_at = NOW()
+    SET is_sold = ${isSold}, updated_at = NOW()
     WHERE (${ident.id ?? null}::int IS NOT NULL AND id = ${ident.id ?? null}::int)
        OR (${ident.slug ?? null}::text IS NOT NULL AND slug = ${ident.slug ?? null}::text)
-    RETURNING id, category_id, name, slug, description, price,
-              sale_price, sale_end_at,
-              image_url, images, colors,
-              is_active, is_hero, featured_rank,
-              created_at, updated_at
+    RETURNING id, is_active, is_sold
   `) as Record<string, unknown>[];
-  if (!rows[0]) return notFound('Không tìm thấy sản phẩm');
+  if (!rows[0]) return notFound('Không tìm thấy account');
   return jsonOk(rows[0], { cache: 'no-store' });
 }
 
@@ -261,7 +324,7 @@ export async function DELETE(req: NextRequest, ctx: RouteCtx) {
        OR (${ident.slug ?? null}::text IS NOT NULL AND slug = ${ident.slug ?? null}::text)
     RETURNING id
   `) as Record<string, unknown>[];
-  if (!rows[0]) return notFound('Không tìm thấy sản phẩm');
+  if (!rows[0]) return notFound('Không tìm thấy account');
   return new NextResponse(null, {
     status: 204,
     headers: { 'Cache-Control': 'private, no-store, max-age=0' },

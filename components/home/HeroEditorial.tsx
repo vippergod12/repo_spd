@@ -9,9 +9,8 @@ import { DEFAULT_BLUR_DATA_URL } from '@/lib/utils/blur';
 interface Props {
   categories: Category[];
   products: Product[];
-  /** Sản phẩm hero được admin chọn (ưu tiên cao nhất). null = chưa cấu hình. */
+  /** Account hero được admin chọn (ưu tiên cao nhất). null = chưa cấu hình. */
   hero?: Product | null;
-  /** Đang fetch dữ liệu lần đầu — chưa đủ thông tin để chọn ảnh */
   loading?: boolean;
 }
 
@@ -39,7 +38,7 @@ export default function HeroEditorial({ categories, products, hero, loading }: P
   }, [hero?.image_url, products, categories]);
 
   const heroAlt = hero?.name
-    ? `${hero.name} — Mẫu túi vải không dệt nổi bật ${SITE_NAME}`
+    ? `${hero.name} — Account PUBG nổi bật ${SITE_NAME}`
     : `${SITE_NAME} — ${SITE_TAGLINE}`;
 
   useEffect(() => {
@@ -53,19 +52,19 @@ export default function HeroEditorial({ categories, products, hero, loading }: P
     <section className="hero-editorial">
       <div className="container hero-edit-grid">
         <div className="hero-edit-meta">
-          <span className="hero-edit-tag">● Nhà sản xuất &amp; phân phối — 12 năm</span>
-          <span className="hero-edit-date">{monthYear}</span>
-          <span className="hero-edit-loc">VN — Giao 63/63 tỉnh thành</span>
+          <span className="hero-edit-tag">● PUBG: BATTLEGROUNDS — STEAM PC</span>
+          <span className="hero-edit-date">SEASON · {monthYear}</span>
+          <span className="hero-edit-loc">VIETNAM — GIAO ACC 5 PHÚT</span>
         </div>
 
         <div className="hero-edit-headline">
           <h1 className="hero-edit-title">
-            <span className="hero-edit-title-statement">Túi vải</span>
+            <span className="hero-edit-title-statement">Acc PUBG</span>
             <span className="hero-edit-title-eyebrow">
               <span className="hero-edit-title-rule" aria-hidden />
-              cho thương hiệu
+              full skin · all server
             </span>
-            <span className="hero-edit-title-accent">xanh hơn.</span>
+            <span className="hero-edit-title-accent">cho chiến thần.</span>
           </h1>
         </div>
 
@@ -87,14 +86,15 @@ export default function HeroEditorial({ categories, products, hero, loading }: P
               />
             ) : (
               <div className="hero-edit-image-skeleton" aria-hidden>
-                <span className="hero-edit-image-mark">M</span>
+                <span className="hero-edit-image-mark">R</span>
               </div>
             )}
           </div>
           <p className="hero-edit-desc">
-            Túi quai xách, túi dây rút, túi hộp đáy vuông, túi hội nghị, túi
-            tote thời trang — sản xuất tại xưởng MINT, in logo theo yêu cầu.
-            MOQ thấp, báo giá nhanh.
+            Kho hàng hơn <strong>500+ acc PUBG: BATTLEGROUNDS PC</strong> đã verify Steam — từ Bronze
+            tới <strong>Conqueror</strong>, full skin <strong>Glacier M416/AKM/AWM</strong>,
+            Wanderer Set, PGC Crown esports. Thanh toán MoMo / banking, giao acc qua
+            Zalo / Telegram trong <strong>5 phút</strong>. Bảo hành trọn đời.
           </p>
           <a
             href="#hot"
@@ -104,26 +104,26 @@ export default function HeroEditorial({ categories, products, hero, loading }: P
             }}
             className="hero-edit-cta"
           >
-            Xem mẫu túi nổi bật ↘
+            Khám phá kho acc ↘
           </a>
         </div>
 
         <div className="hero-edit-bottom">
           <div className="hero-edit-stat">
-            <span className="hero-edit-stat-num">10+</span>
-            <span className="hero-edit-stat-label">Năm kinh nghiệm</span>
+            <span className="hero-edit-stat-num">500+</span>
+            <span className="hero-edit-stat-label">Acc đã verify</span>
           </div>
           <div className="hero-edit-stat">
-            <span className="hero-edit-stat-num">2M+</span>
-            <span className="hero-edit-stat-label">Túi đã sản xuất</span>
+            <span className="hero-edit-stat-num">10K+</span>
+            <span className="hero-edit-stat-label">Khách hàng</span>
           </div>
           <div className="hero-edit-stat">
-            <span className="hero-edit-stat-num">100</span>
-            <span className="hero-edit-stat-label">MOQ tối thiểu</span>
+            <span className="hero-edit-stat-num">5'</span>
+            <span className="hero-edit-stat-label">Giao acc nhanh</span>
           </div>
           <div className="hero-edit-stat">
-            <span className="hero-edit-stat-num">7</span>
-            <span className="hero-edit-stat-label">Ngày sản xuất</span>
+            <span className="hero-edit-stat-num">∞</span>
+            <span className="hero-edit-stat-label">Bảo hành trọn đời</span>
           </div>
         </div>
       </div>

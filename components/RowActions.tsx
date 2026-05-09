@@ -6,13 +6,19 @@ export interface RowAction {
   label: string;
   onClick: () => void;
   variant?: 'ghost' | 'danger';
+  icon?: React.ReactNode;
 }
 
 interface Props {
   actions: RowAction[];
+  /**
+   * Khi true, luôn hiển thị kebab menu (3 chấm dọc) bất kể viewport.
+   * Mặc định false: desktop hiển thị inline buttons, mobile mới gộp về kebab.
+   */
+  kebabOnly?: boolean;
 }
 
-export default function RowActions({ actions }: Props) {
+export default function RowActions({ actions, kebabOnly = false }: Props) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -33,7 +39,7 @@ export default function RowActions({ actions }: Props) {
   }, [open]);
 
   return (
-    <div className="row-actions" ref={ref}>
+    <div className={`row-actions ${kebabOnly ? 'is-kebab-only' : ''}`} ref={ref}>
       <div className="row-actions-inline">
         {actions.map((a) => (
           <button
@@ -50,7 +56,7 @@ export default function RowActions({ actions }: Props) {
       <div className="row-actions-kebab">
         <button
           type="button"
-          className="kebab-btn"
+          className={`kebab-btn ${open ? 'is-open' : ''}`}
           onClick={(e) => {
             e.stopPropagation();
             setOpen((v) => !v);
@@ -77,7 +83,8 @@ export default function RowActions({ actions }: Props) {
                 a.onClick();
               }}
             >
-              {a.label}
+              {a.icon && <span className="kebab-item-icon" aria-hidden>{a.icon}</span>}
+              <span>{a.label}</span>
             </button>
           ))}
         </div>

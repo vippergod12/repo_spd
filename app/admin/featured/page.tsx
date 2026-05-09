@@ -222,9 +222,9 @@ export default function AdminFeaturedPage() {
     <div className="admin-featured-page">
       <header className="admin-page-header">
         <div>
-          <h1>Sản phẩm tiêu biểu</h1>
+          <h1>Acc tiêu biểu</h1>
           <p className="admin-page-sub">
-            Chọn ảnh hero hiển thị ở banner trang chủ và tối đa {MAX_FEATURED} sản phẩm cho mục
+            Chọn acc hero hiển thị ở banner trang chủ và tối đa {MAX_FEATURED} acc cho mục
             <strong> &quot;Đang được săn đón&quot;</strong>.
           </p>
         </div>

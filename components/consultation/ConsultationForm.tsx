@@ -7,8 +7,8 @@ type Gender = 'male' | 'female' | 'other';
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
 const GENDER_OPTIONS: Array<{ value: Gender; label: string }> = [
-  { value: 'female', label: 'Nữ' },
   { value: 'male', label: 'Nam' },
+  { value: 'female', label: 'Nữ' },
   { value: 'other', label: 'Khác' },
 ];
 
@@ -70,11 +70,11 @@ export default function ConsultationForm() {
         <div className="consult-success-mark" aria-hidden>
           {'✓\uFE0E'}
         </div>
-        <h2>Cảm ơn bạn!</h2>
+        <h2>Đã nhận yêu cầu!</h2>
         <p>
-          MINT đã nhận được yêu cầu báo giá. Chuyên viên sẽ liên hệ với bạn
-          trong vòng <strong>30 phút</strong> (giờ hành chính, 8:00–18:00) để
-          tư vấn và gửi báo giá chi tiết.
+          R.E.P.O đã nhận được yêu cầu của bạn. Đội ngũ shop sẽ săn acc và
+          liên hệ với bạn trong vòng <strong>30 phút</strong> (giờ hành chính,
+          9:00–23:00) qua Zalo / điện thoại.
         </p>
         <button
           type="button"
@@ -91,19 +91,19 @@ export default function ConsultationForm() {
 
   return (
     <form className="consult-form-card" onSubmit={onSubmit} noValidate>
-      <h2 className="consult-form-title">Nhận báo giá miễn phí</h2>
+      <h2 className="consult-form-title">Đăng ký tìm acc PUBG</h2>
       <p className="consult-form-sub">
-        Điền thông tin — MINT sẽ liên hệ trong 30 phút.
+        Nhập thông tin — R.E.P.O liên hệ trong 30 phút.
       </p>
 
       <div className="consult-field">
-        <label htmlFor="cf-name">Họ và tên / Tên công ty</label>
+        <label htmlFor="cf-name">Họ và tên / Nickname</label>
         <input
           id="cf-name"
           type="text"
           autoComplete="name"
           maxLength={120}
-          placeholder="Nguyễn Thị A / Công ty XYZ"
+          placeholder="Nguyễn Văn A / Khoa Tank PUBG"
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={isSubmitting}
@@ -137,7 +137,7 @@ export default function ConsultationForm() {
 
       <div className="consult-field">
         <label htmlFor="cf-phone">
-          Số điện thoại <span className="consult-required" aria-hidden>*</span>
+          Số điện thoại / Zalo <span className="consult-required" aria-hidden>*</span>
           <span className="visually-hidden"> (bắt buộc)</span>
         </label>
         <input
@@ -164,12 +164,12 @@ export default function ConsultationForm() {
       </div>
 
       <div className="consult-field">
-        <label htmlFor="cf-note">Yêu cầu / số lượng (không bắt buộc)</label>
+        <label htmlFor="cf-note">Mô tả acc cần tìm (rank, skin, ngân sách)</label>
         <textarea
           id="cf-note"
-          rows={3}
+          rows={4}
           maxLength={1000}
-          placeholder="VD: 500 túi tote 35×40cm, in logo 1 màu, cần gấp trong 5 ngày..."
+          placeholder="VD: Cần acc Conqueror SEA, có Glacier M416 + AWM, KDR > 4, ngân sách 5–8tr"
           value={note}
           onChange={(e) => setNote(e.target.value)}
           disabled={isSubmitting}
@@ -187,12 +187,12 @@ export default function ConsultationForm() {
         className="consult-submit"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Đang gửi…' : 'Gửi yêu cầu báo giá'}
+        {isSubmitting ? 'Đang gửi…' : 'Gửi yêu cầu tìm acc'}
       </button>
 
       <p className="consult-form-note">
-        Bằng việc gửi form, bạn đồng ý cho MINT liên hệ qua số điện thoại đã
-        cung cấp để tư vấn báo giá.
+        Bằng việc gửi form, bạn đồng ý cho R.E.P.O liên hệ qua SĐT đã cung cấp
+        để tư vấn acc PUBG. Thông tin chỉ dùng nội bộ — không spam, không chia sẻ.
       </p>
     </form>
   );

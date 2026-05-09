@@ -4,6 +4,7 @@ import type { Product } from '@/lib/types';
 import Reveal from '../Reveal';
 import { PriceDisplay, SaleBadge } from '../SaleBadge';
 import { DEFAULT_BLUR_DATA_URL } from '@/lib/utils/blur';
+import { tierClass } from '@/lib/utils/tier';
 
 interface Props {
   products: Product[];
@@ -12,10 +13,6 @@ interface Props {
 
 type Slot = 'hero' | 'tall' | 'small';
 
-// Layout 4-col x 3-row magazine, 8 items total:
-//   [ HERO  HERO  TALL  small ]
-//   [ HERO  HERO  TALL  small ]
-//   [ small small small small ]
 const SLOTS: Slot[] = ['hero', 'tall', 'small', 'small', 'small', 'small', 'small', 'small'];
 
 function Fallback({ name }: { name: string }) {
@@ -37,8 +34,8 @@ export default function HotBento({ products, loading }: Props) {
         <Reveal variant="fade-up">
           <div className="hot-heading">
             <div>
-              <span className="section-eyebrow">✦ Mẫu bán chạy</span>
-              <h2>Túi vải được yêu thích</h2>
+              <span className="section-eyebrow">✦ Acc Hot — Verified</span>
+              <h2>Top acc PUBG được săn lùng</h2>
             </div>
           </div>
         </Reveal>
@@ -46,7 +43,7 @@ export default function HotBento({ products, loading }: Props) {
         {loading ? (
           <div className="empty-state">Đang tải...</div>
         ) : items.length === 0 ? (
-          <div className="empty-state">Chưa có sản phẩm.</div>
+          <div className="empty-state">Chưa có acc nào sẵn hàng. Gửi yêu cầu qua Zalo để được tìm acc theo nhu cầu.</div>
         ) : (
           <div className="bento">
             {items.map((p, i) => {
@@ -54,6 +51,7 @@ export default function HotBento({ products, loading }: Props) {
               const altText = p.category_name
                 ? `${p.name} — ${p.category_name}`
                 : p.name;
+              const soldOut = !p.is_active || p.is_sold === true;
               return (
                 <Reveal
                   key={p.id}
@@ -63,7 +61,7 @@ export default function HotBento({ products, loading }: Props) {
                 >
                   <Link
                     href={`/san-pham/${p.slug}`}
-                    className={`bento-card ${!p.is_active ? 'is-soldout' : ''}`}
+                    className={`bento-card ${soldOut ? 'is-soldout' : ''}`}
                   >
                     <div className="bento-image">
                       {p.image_url ? (
@@ -84,15 +82,25 @@ export default function HotBento({ products, loading }: Props) {
                       )}
                     </div>
                     <div className="bento-overlay" aria-hidden />
-                    {p.is_active ? (
+                    {!soldOut ? (
                       <SaleBadge product={p} />
                     ) : (
                       <div className="soldout-overlay">
-                        <span>Hết hàng</span>
+                        <span>{p.is_sold ? 'Đã bán' : 'Tạm khoá'}</span>
                       </div>
                     )}
                     <span className="bento-tag">#{i + 1} HOT</span>
+                    {p.has_mythic && !soldOut && (
+                      <span className="mythic-pill" style={{ position: 'absolute', top: 12, left: 12 }}>
+                        Mythic
+                      </span>
+                    )}
                     <div className="bento-info">
+                      {p.tier && (
+                        <div style={{ marginBottom: 6 }}>
+                          <span className={`tier-badge ${tierClass(p.tier)}`}>{p.tier}</span>
+                        </div>
+                      )}
                       <span className="bento-cat">{p.category_name ?? ''}</span>
                       <h3>{p.name}</h3>
                       <PriceDisplay product={p} className="bento-price" />

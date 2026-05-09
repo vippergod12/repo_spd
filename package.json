@@ -1,7 +1,8 @@
 {
-  "name": "mint",
+  "name": "repo-shop",
   "private": true,
   "version": "1.0.0",
+  "description": "R.E.P.O — Shop bán account PUBG: BATTLEGROUNDS PC",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

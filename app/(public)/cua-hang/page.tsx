@@ -11,7 +11,7 @@ import AllProductsView from './AllProductsView';
 export const revalidate = 60;
 
 type Props = {
-  searchParams: { cat?: string; sort?: string };
+  searchParams: { cat?: string; sort?: string; tier?: string };
 };
 
 const ALL = 'all';
@@ -20,8 +20,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const cat = (searchParams.cat || ALL).trim() || ALL;
   if (cat === ALL) {
     return {
-      title: 'Cửa hàng — Toàn bộ mẫu túi vải không dệt',
-      description: `Khám phá toàn bộ bộ sưu tập túi vải không dệt tại ${SITE_NAME}: túi quai xách, túi dây rút, túi hộp đáy vuông, túi hội nghị, túi tote, túi quà tặng — sản xuất tại VN, in logo theo yêu cầu.`,
+      title: 'Kho Acc PUBG — Toàn bộ account đang bán',
+      description: `Khám phá toàn bộ kho account PUBG: BATTLEGROUNDS (PC/Steam) tại ${SITE_NAME}: từ Bronze tới Conqueror, full skin Glacier M416/AKM/AWM, Wanderer Set, PGC Crown — verify Steam in-game, bảo hành trọn đời. Chỉ acc PC, không bán Mobile.`,
       alternates: { canonical: '/cua-hang' },
     };
   }
@@ -29,15 +29,15 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const found = categories.find((c) => c.slug === cat);
   if (!found) {
     return {
-      title: 'Cửa hàng',
+      title: 'Kho Acc PUBG',
       alternates: { canonical: '/cua-hang' },
     };
   }
   return {
-    title: `${found.name} — Cửa hàng`,
+    title: `${found.name} — Kho Acc`,
     description:
       found.description?.trim() ||
-      `Bộ sưu tập ${found.name} tại ${SITE_NAME}.`,
+      `Bộ sưu tập acc PUBG ${found.name} tại ${SITE_NAME}.`,
     alternates: { canonical: `/cua-hang?cat=${cat}` },
   };
 }
@@ -50,7 +50,7 @@ export default async function AllProductsPage({ searchParams }: Props) {
   ]);
 
   const currentCategory = categories.find((c) => c.slug === cat);
-  const pageName = cat === ALL ? 'Toàn bộ sản phẩm' : currentCategory?.name ?? 'Toàn bộ sản phẩm';
+  const pageName = cat === ALL ? 'Toàn bộ acc PUBG' : currentCategory?.name ?? 'Toàn bộ acc PUBG';
   const canonicalPath = cat === ALL ? '/cua-hang' : `/cua-hang?cat=${cat}`;
 
   const jsonLd: unknown[] = [
@@ -81,10 +81,10 @@ export default async function AllProductsPage({ searchParams }: Props) {
 
         <div className="all-products-header">
           <div>
-            <span className="section-eyebrow">Cửa hàng</span>
+            <span className="section-eyebrow">Kho acc PUBG</span>
             <h1>{pageName}</h1>
           </div>
-          <span className="all-products-count">{products.length} sản phẩm</span>
+          <span className="all-products-count">{products.length} acc sẵn sàng</span>
         </div>
 
         <AllProductsView

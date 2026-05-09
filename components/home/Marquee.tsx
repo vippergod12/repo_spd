@@ -3,13 +3,13 @@ interface Props {
 }
 
 const DEFAULT_ITEMS = [
-  'IN LOGO TỪ 100 TÚI',
-  'XƯỞNG SẢN XUẤT TRỰC TIẾP',
-  'GIAO HÀNG TOÀN QUỐC',
-  'VẢI KHÔNG DỆT 60–100 GSM',
-  'TÚI ECO-FRIENDLY',
-  'BÁO GIÁ TRONG 30 PHÚT',
-  'MOQ THẤP — GIÁ TỐT',
+  'PUBG: BATTLEGROUNDS — STEAM PC',
+  'GLACIER M416 · AWM FOOL · AKM JADE TWILIGHT',
+  'CONQUEROR · ACE · CROWN · DIAMOND',
+  'BẢO HÀNH TRỌN ĐỜI',
+  'GIAO ACC 5 PHÚT QUA TELEGRAM / ZALO',
+  'FULL MAIL · ĐỔI HOTMAIL · ĐỔI MẬT KHẨU',
+  'THANH TOÁN MOMO · BANKING · CRYPTO',
 ];
 
 export default function Marquee({ items = DEFAULT_ITEMS }: Props) {

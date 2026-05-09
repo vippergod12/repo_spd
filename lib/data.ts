@@ -1,15 +1,5 @@
 // Data fetcher cho Server Components.
-//
-// Server Components query DB trực tiếp qua `@neondatabase/serverless` —
-// không hop qua HTTP `/api/...`. Lý do:
-//   1. Nhanh hơn: bỏ qua JSON serialize/parse + một round trip mạng.
-//   2. Không phụ thuộc dev server tự gọi chính nó (`next build` không cần
-//      `localhost:3000` đang chạy).
-//   3. ISR vẫn hoạt động tốt: Next.js cache RSC output theo `revalidate` ở
-//      page level (`export const revalidate = 60`).
-//
-// Admin client (browser) vẫn dùng `lib/api-client.ts` để gọi route handlers
-// trong `app/api/[...]/route.ts` — đây mới là lúc cần HTTP layer + JWT auth.
+// Server Components query Neon DB trực tiếp; admin client (browser) dùng /api/*.
 
 import { sql } from './server/db';
 import type { Category, Product } from './types';
@@ -41,7 +31,7 @@ export async function fetchHome(): Promise<HomeBundle> {
   const [categories, products, featured, heroRows, storyRows] = await Promise.all([
     sql`
       SELECT c.id, c.name, c.slug, c.image_url, c.description, c.created_at, c.updated_at,
-             (SELECT COUNT(*)::int FROM products p WHERE p.category_id = c.id) AS product_count
+             (SELECT COUNT(*)::int FROM products p WHERE p.category_id = c.id AND p.is_sold = FALSE) AS product_count
       FROM categories c
       ORDER BY c.name ASC
     `,
@@ -50,10 +40,15 @@ export async function fetchHome(): Promise<HomeBundle> {
              p.sale_price, p.sale_end_at,
              p.image_url, p.images, p.colors,
              p.is_active, p.is_hero, p.featured_rank,
+             p.account_code, p.tier, p.steam_level, p.pubg_level,
+             p.server, p.hours_played, p.skin_count, p.has_mythic,
+             p.register_method, p.gcoin_balance, p.is_sold,
+             p.kd_ratio, p.win_rate,
              p.created_at, p.updated_at,
              c.name AS category_name, c.slug AS category_slug
       FROM products p
       JOIN categories c ON c.id = p.category_id
+      WHERE p.is_sold = FALSE
       ORDER BY p.is_active DESC, p.created_at DESC
       LIMIT ${TRENDING_LIMIT}
     `,
@@ -61,12 +56,17 @@ export async function fetchHome(): Promise<HomeBundle> {
       SELECT p.id, p.category_id, p.name, p.slug, p.price,
              p.sale_price, p.sale_end_at,
              p.image_url, p.images, p.colors,
-             p.is_active, p.featured_rank,
+             p.is_active, p.is_hero, p.featured_rank,
+             p.account_code, p.tier, p.steam_level, p.pubg_level,
+             p.server, p.hours_played, p.skin_count, p.has_mythic,
+             p.register_method, p.gcoin_balance, p.is_sold,
+             p.kd_ratio, p.win_rate,
              p.created_at, p.updated_at,
              c.name AS category_name, c.slug AS category_slug
       FROM products p
       JOIN categories c ON c.id = p.category_id
       WHERE p.featured_rank IS NOT NULL
+        AND p.is_sold = FALSE
       ORDER BY p.featured_rank ASC
       LIMIT ${FEATURED_LIMIT}
     `,
@@ -75,6 +75,10 @@ export async function fetchHome(): Promise<HomeBundle> {
              p.sale_price, p.sale_end_at,
              p.image_url, p.images, p.colors,
              p.is_active, p.is_hero, p.featured_rank,
+             p.account_code, p.tier, p.steam_level, p.pubg_level,
+             p.server, p.hours_played, p.skin_count, p.has_mythic,
+             p.register_method, p.gcoin_balance, p.is_sold,
+             p.kd_ratio, p.win_rate,
              p.created_at, p.updated_at,
              c.name AS category_name, c.slug AS category_slug
       FROM products p
@@ -103,7 +107,7 @@ export async function fetchHome(): Promise<HomeBundle> {
 export async function fetchCategories(): Promise<Category[]> {
   const rows = await sql`
     SELECT c.id, c.name, c.slug, c.image_url, c.description, c.created_at, c.updated_at,
-           (SELECT COUNT(*)::int FROM products p WHERE p.category_id = c.id) AS product_count
+           (SELECT COUNT(*)::int FROM products p WHERE p.category_id = c.id AND p.is_sold = FALSE) AS product_count
     FROM categories c
     ORDER BY c.name ASC
   `;
@@ -135,14 +139,18 @@ export async function fetchProducts(
            p.sale_price, p.sale_end_at,
            p.image_url, p.images, p.colors,
            p.is_active, p.is_hero, p.featured_rank,
+           p.account_code, p.tier, p.steam_level, p.pubg_level,
+           p.server, p.hours_played, p.skin_count, p.has_mythic,
+           p.register_method, p.gcoin_balance, p.is_sold,
+           p.kd_ratio, p.win_rate,
            p.created_at, p.updated_at,
            c.name AS category_name, c.slug AS category_slug
     FROM products p
     JOIN categories c ON c.id = p.category_id
     WHERE (${categoryId}::int IS NULL OR p.category_id = ${categoryId}::int)
       AND (${categorySlug}::text IS NULL OR c.slug = ${categorySlug}::text)
-      AND (${searchTerm}::text IS NULL OR p.name ILIKE ${searchTerm}::text)
-    ORDER BY p.is_active DESC, p.created_at DESC
+      AND (${searchTerm}::text IS NULL OR p.name ILIKE ${searchTerm}::text OR p.account_code ILIKE ${searchTerm}::text)
+    ORDER BY p.is_sold ASC, p.is_active DESC, p.created_at DESC
     LIMIT ${PRODUCT_LIST_LIMIT}
   `;
   return rows as unknown as Product[];
@@ -154,6 +162,10 @@ export async function fetchProductDetail(slug: string): Promise<ProductDetailBun
            p.sale_price, p.sale_end_at,
            p.image_url, p.images, p.colors,
            p.is_active, p.is_hero, p.featured_rank,
+           p.account_code, p.tier, p.steam_level, p.pubg_level,
+           p.server, p.hours_played, p.skin_count, p.has_mythic,
+           p.register_method, p.gcoin_balance, p.is_sold,
+           p.kd_ratio, p.win_rate,
            p.created_at, p.updated_at,
            c.name AS category_name, c.slug AS category_slug
     FROM products p
@@ -170,12 +182,17 @@ export async function fetchProductDetail(slug: string): Promise<ProductDetailBun
              p.sale_price, p.sale_end_at,
              p.image_url, p.images, p.colors,
              p.is_active, p.is_hero, p.featured_rank,
+             p.account_code, p.tier, p.steam_level, p.pubg_level,
+             p.server, p.hours_played, p.skin_count, p.has_mythic,
+             p.register_method, p.gcoin_balance, p.is_sold,
+             p.kd_ratio, p.win_rate,
              p.created_at, p.updated_at,
              c.name AS category_name, c.slug AS category_slug
       FROM products p
       JOIN categories c ON c.id = p.category_id
       WHERE p.category_id = ${product.category_id}
         AND p.id <> ${product.id}
+        AND p.is_sold = FALSE
       ORDER BY p.is_active DESC, p.created_at DESC
       LIMIT ${RELATED_LIMIT}
     `,
@@ -183,13 +200,18 @@ export async function fetchProductDetail(slug: string): Promise<ProductDetailBun
       SELECT p.id, p.category_id, p.name, p.slug, p.price,
              p.sale_price, p.sale_end_at,
              p.image_url, p.images, p.colors,
-             p.is_active, p.featured_rank,
+             p.is_active, p.is_hero, p.featured_rank,
+             p.account_code, p.tier, p.steam_level, p.pubg_level,
+             p.server, p.hours_played, p.skin_count, p.has_mythic,
+             p.register_method, p.gcoin_balance, p.is_sold,
+             p.kd_ratio, p.win_rate,
              p.created_at, p.updated_at,
              c.name AS category_name, c.slug AS category_slug
       FROM products p
       JOIN categories c ON c.id = p.category_id
       WHERE p.featured_rank IS NOT NULL
         AND p.id <> ${product.id}
+        AND p.is_sold = FALSE
       ORDER BY p.featured_rank ASC
       LIMIT ${FEATURED_LIMIT}
     `,

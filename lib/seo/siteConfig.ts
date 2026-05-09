@@ -1,14 +1,16 @@
 /**
- * Cấu hình trung tâm cho SEO + thương hiệu của toàn site MINT.
+ * Cấu hình trung tâm cho SEO + thương hiệu của shop R.E.P.O.
  *
- * - Đặt NEXT_PUBLIC_SITE_URL trong `.env` (vd `https://mintbag.vn`) để các thẻ
+ * R.E.P.O — Reliable Esports PUBG Outlet
+ * Chuyên mua bán account PUBG: BATTLEGROUNDS (PC / Steam) uy tín, có bảo hành.
+ *
+ * - Đặt NEXT_PUBLIC_SITE_URL trong `.env` (vd `https://repo-shop.vn`) để các thẻ
  *   canonical / Open Graph / sitemap dùng đúng domain production.
  * - Khi deploy lên Vercel, fallback dùng VERCEL_URL được set tự động.
  * - Thông tin liên hệ (Zalo / hotline / email / địa chỉ) đọc từ env, có default
  *   để không vỡ UI khi chạy local lần đầu.
  */
 
-/** Kiểm tra một chuỗi có phải URL tuyệt đối hợp lệ không. */
 function isValidUrl(value: string): boolean {
   try {
     const u = new URL(value);
@@ -18,13 +20,6 @@ function isValidUrl(value: string): boolean {
   }
 }
 
-/**
- * Quyết định domain của site.
- *
- * Defensive: nếu env vars bị set sai (ví dụ trên Vercel ai đó dán nhầm tên
- * biến vào ô Value), KHÔNG để build crash — bỏ qua giá trị invalid và
- * fallback về VERCEL_URL hoặc localhost.
- */
 function resolveSiteUrl(): string {
   const candidates = [
     process.env.NEXT_PUBLIC_SITE_URL,
@@ -51,30 +46,35 @@ function resolveSiteUrl(): string {
 
 export const SITE_URL = resolveSiteUrl();
 
-export const SITE_NAME = 'MINT';
+export const SITE_NAME = 'R.E.P.O';
 
-export const SITE_TAGLINE = 'Túi vải không dệt thân thiện môi trường';
+export const SITE_FULL_NAME = 'R.E.P.O — Reliable Esports PUBG Outlet';
+
+export const SITE_TAGLINE = 'Shop account PUBG PC uy tín — Conqueror, Mythic skins, M416 Glacier';
 
 export const SITE_DESCRIPTION =
-  'MINT — xưởng sản xuất & in ấn túi vải không dệt cao cấp tại Việt Nam: túi quai xách, túi dây rút, túi hộp đáy vuông, túi hội nghị, túi tote thời trang, túi quà tặng. In logo theo yêu cầu, MOQ thấp, giao hàng toàn quốc.';
+  'R.E.P.O — Cửa hàng mua bán account PUBG: BATTLEGROUNDS (Steam/PC) uy tín tại Việt Nam. Acc Conqueror, Ace, Crown, đầy đủ skin Glacier M416/AKM/AWM, set rare, level cao. Bảo hành trọn đời, đổi mật khẩu / mail / hotmail full quyền.';
 
 export const SITE_LOCALE = 'vi_VN';
 
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.jpg`;
 
 export const SITE_KEYWORDS = [
-  'túi vải không dệt',
-  'túi vải không dệt giá rẻ',
-  'in túi vải không dệt',
-  'túi vải không dệt in logo',
-  'xưởng sản xuất túi vải không dệt',
-  'túi tote',
-  'túi dây rút',
-  'túi hộp đáy vuông',
-  'túi hội nghị',
-  'túi quà tặng doanh nghiệp',
-  'túi vải eco-friendly',
-  'túi vải không dệt giá sỉ',
+  'shop acc pubg',
+  'mua bán acc pubg',
+  'acc pubg pc',
+  'acc pubg steam',
+  'account pubg battlegrounds',
+  'acc pubg conqueror',
+  'acc pubg ace',
+  'acc pubg m416 glacier',
+  'acc pubg akm glacier',
+  'acc pubg awm glacier',
+  'acc pubg mythic',
+  'mua acc pubg uy tín',
+  'shop pubg pc',
+  'thanh lý acc pubg',
+  'acc pubg giá rẻ',
   SITE_NAME,
 ];
 
@@ -105,12 +105,17 @@ export const ZALO_URL =
   (ZALO_PHONE ? `https://zalo.me/${ZALO_PHONE}` : '');
 
 export const HOTLINE = (process.env.NEXT_PUBLIC_HOTLINE || ZALO_PHONE || '0987654321').trim();
-export const EMAIL = (process.env.NEXT_PUBLIC_EMAIL || 'info@mintbag.vn').trim();
+export const EMAIL = (process.env.NEXT_PUBLIC_EMAIL || 'support@repo-shop.vn').trim();
+
+/** Link Telegram / Facebook / Discord — kênh giao dịch phổ biến với gamer. */
+export const TELEGRAM_URL = (process.env.NEXT_PUBLIC_TELEGRAM_URL || 'https://t.me/repo_shop').trim();
+export const FACEBOOK_URL = (process.env.NEXT_PUBLIC_FACEBOOK_URL || 'https://facebook.com/repo.shop.pubg').trim();
+export const DISCORD_URL = (process.env.NEXT_PUBLIC_DISCORD_URL || '').trim();
 
 export const COMPANY = {
-  name: 'Công ty TNHH Sản xuất MINT',
-  address: '123 Đường Tân Thới Hiệp, Quận 12, TP. Hồ Chí Minh',
-  city: 'Hồ Chí Minh',
+  name: 'R.E.P.O — Reliable Esports PUBG Outlet',
+  address: 'Văn phòng giao dịch online — Hà Nội & TP. Hồ Chí Minh',
+  city: 'Hà Nội',
   country: 'VN',
-  workingHours: '8:00 - 18:00 (Thứ 2 - Thứ 7)',
+  workingHours: '9:00 - 23:00 (cả tuần, kể cả ngày lễ)',
 };

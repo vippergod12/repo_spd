@@ -1,168 +1,222 @@
-# MINT — Shop túi vải không dệt
+# R.E.P.O — Shop bán Account PUBG: BATTLEGROUNDS PC
 
-Website bán & nhận in túi vải không dệt cao cấp với SEO tối đa và admin panel quản lý sản phẩm.
+> **R.E.P.O** = Reliable Esports PUBG Outlet
+> Website thương mại điện tử chuyên mua bán **account PUBG: BATTLEGROUNDS (Steam/PC)**
+> tại Việt Nam — full skin Glacier, Conqueror tier, bảo hành trọn đời.
 
-- Frontend: **Next.js 14 (App Router)** + TypeScript + ISR 60s
-- Backend: Next.js Route Handlers `/api/*` (auth + categories + products)
-- Database: **Neon (Postgres serverless)** qua `@neondatabase/serverless`
-- SEO: SSR/ISR cho mọi trang public, Metadata API per-page, JSON-LD, sitemap động
-- Deploy: 1-click trên Vercel
-- Không có giỏ hàng / thanh toán / đăng ký user. Khách liên hệ qua **Zalo**. Có **một tài khoản admin** để CRUD sản phẩm.
+Stack: **Next.js 14 (App Router) + TypeScript + Neon Postgres serverless**.
+Không có cart/checkout — buyer liên hệ shop qua **Zalo / Telegram / Facebook**
+để xem demo Steam in-game trước khi giao dịch.
 
 ---
 
-## Cấu trúc
+## ✨ Tính năng
+
+- 📦 **Kho account**: 8 danh mục theo tier / loại skin / server (Conqueror, Ace,
+  Crown/Diamond, Full Glacier, Mythic/Limited Edition, Starter, Steam High Lv, Server Riêng)
+- 🎯 **Filter theo tier** (Conqueror → Bronze) bằng chip màu sắc đặc trưng PUBG
+- 🏆 **Tier badge** với màu chuẩn game (Conqueror = magenta, Ace = purple, ...)
+- 🛒 **Mua acc**: 3 nút song song (Zalo / Telegram / Facebook) tự copy
+  thông tin acc + giá vào clipboard, mở chat private
+- 🔒 **Bảo hành trọn đời**: trang `/bao-hanh` với 4 cam kết, 5 bước mua,
+  4 phương thức thanh toán
+- 📝 **Tìm acc theo yêu cầu**: form `/tu-van` cho khách đăng ký nhu cầu
+- 🎨 **Dark gaming theme** + cam PUBG `#f5a623` + cyan `#00d4ff` +
+  font Rajdhani/Orbitron
+- 📊 **Admin panel** đầy đủ CRUD acc với 14 fields PUBG: tier, level, server,
+  KDR, win rate, skin count, has_mythic, register method, G-Coin, sold flag
+- 🔍 **SEO chuẩn**: Metadata API, JSON-LD (Product, BreadcrumbList,
+  CollectionPage, ItemList), sitemap động, OpenGraph, canonical
+- ⚡ **ISR + Server Components** — pre-render cache 60s, hot pages
+  load <500ms từ edge
+
+---
+
+## 📂 Cấu trúc thư mục
 
 ```
-MINT/
-├── app/                         # Next.js App Router
-│   ├── layout.tsx               # Root layout (font, metadata, JSON-LD organization)
-│   ├── globals.css              # CSS toàn cục (theme mint + cream)
-│   ├── (public)/                # Layout public: Navbar + Footer + FloatingActions
-│   │   ├── page.tsx             # Trang chủ (Server Component, ISR 60s)
-│   │   ├── cua-hang/            # Cửa hàng (lọc theo danh mục, search)
-│   │   ├── danh-muc/[slug]/     # Trang danh mục
-│   │   └── san-pham/[slug]/     # Chi tiết sản phẩm + JSON-LD + Zalo CTA
-│   ├── admin/                   # Admin panel (JWT lưu localStorage)
-│   ├── api/                     # Route Handlers
-│   │   ├── auth/{login,me}/
-│   │   ├── categories/[id]/
-│   │   ├── products/{[id],featured,hero}/
-│   │   └── home/                # Bundle data trang chủ
-│   ├── sitemap.ts               # /sitemap.xml động từ DB
-│   └── robots.ts                # /robots.txt
-├── components/
-│   ├── home/                    # Hero, Marquee, HotBento, TrendingGrid, Story, BigCTA
-│   └── *.tsx                    # Navbar, Footer, ProductCard, Modal, ImagePicker, FloatingActions
+shop_ban_acc_game/
+├── app/
+│   ├── (public)/              # Routes công khai
+│   │   ├── page.tsx           # Trang chủ
+│   │   ├── cua-hang/          # Kho acc + filter
+│   │   ├── danh-muc/[slug]/   # Theo phân loại
+│   │   ├── san-pham/[slug]/   # Chi tiết acc
+│   │   ├── gioi-thieu/        # About scrollytelling
+│   │   ├── tu-van/            # Tìm acc theo yêu cầu
+│   │   └── bao-hanh/          # Cam kết & hướng dẫn
+│   ├── admin/                 # Admin panel (CRUD)
+│   ├── api/                   # Route handlers
+│   ├── globals.css            # Dark gaming theme
+│   └── layout.tsx             # Root layout + fonts
+├── components/                # UI components
+├── db/schema.sql              # Postgres schema (idempotent)
 ├── lib/
-│   ├── data.ts                  # Server-side fetcher (đọc thẳng DB, ISR-aware)
-│   ├── api-client.ts            # Client-side API wrapper (admin)
-│   ├── seo/                     # siteConfig + JSON-LD helpers
-│   ├── server/                  # db (Neon), auth (JWT), http helpers
-│   ├── utils/                   # format, sale, zalo, image
-│   └── types.ts
-├── db/schema.sql                # Schema Postgres
-├── scripts/                     # init-db, seed (túi vải không dệt)
-├── public/favicon.svg
-├── next.config.mjs
-└── package.json
+│   ├── data.ts                # Server data fetch
+│   ├── types.ts               # TypeScript types
+│   ├── api-client.ts          # Browser API client
+│   ├── seo/                   # SEO config + JSON-LD
+│   ├── server/                # DB + auth + http helpers
+│   └── utils/                 # tier, format, sale, zalo
+├── scripts/
+│   ├── init-db.ts             # Apply schema
+│   └── seed.ts                # Seed 8 danh mục + 25 acc
+└── public/                    # Static assets
 ```
 
 ---
 
-## Yêu cầu
+## 🚀 Cài đặt & Chạy local
 
-- Node.js >= 18.18
-- Tài khoản Neon: <https://console.neon.tech> (miễn phí)
+### 1. Tạo Neon Postgres (miễn phí)
 
-## Cài đặt
+1. Vào [console.neon.tech](https://console.neon.tech), tạo project mới.
+2. Copy **Pooled connection string** vào `.env`.
+
+### 2. Setup project
 
 ```bash
+# Clone về & cài deps
 npm install
-copy .env.example .env       # Windows
-# hoặc: cp .env.example .env  # macOS / Linux
-```
 
-Mở `.env` và điền:
+# Copy template env
+cp .env.example .env
+# Mở .env và điền: DATABASE_URL, JWT_SECRET, NEXT_PUBLIC_SITE_URL...
 
-| Biến                              | Ý nghĩa                                                                      |
-| --------------------------------- | ---------------------------------------------------------------------------- |
-| DATABASE_URL                      | Connection string Neon (chọn _Pooled connection_, có `?sslmode=require`).    |
-| JWT_SECRET                        | Chuỗi ngẫu nhiên để ký token admin. Tối thiểu 32 ký tự ngẫu nhiên.           |
-| ADMIN_USERNAME / ADMIN_PASSWORD   | Tài khoản admin sẽ được seed.                                                |
-| NEXT_PUBLIC_SITE_URL              | Domain production (vd https://mintbag.vn). Quan trọng cho SEO + sitemap.     |
-| NEXT_PUBLIC_ZALO_PHONE            | SĐT Zalo của shop (vd 0987654321). Dùng cho nút "Liên hệ Zalo".              |
-| NEXT_PUBLIC_ZALO_URL              | (Tuỳ chọn) Link Zalo OA đầy đủ. Nếu set sẽ ghi đè NEXT_PUBLIC_ZALO_PHONE.    |
-| NEXT_PUBLIC_HOTLINE               | (Tuỳ chọn) Hotline. Mặc định = ZALO_PHONE.                                   |
-| NEXT_PUBLIC_EMAIL                 | (Tuỳ chọn) Email liên hệ.                                                    |
+# Apply schema vào DB (idempotent — chạy lại an toàn)
+npm run db:init
 
-## Khởi tạo database
+# Seed 8 danh mục + 25 account PUBG mẫu
+npm run db:seed
 
-```bash
-npm run db:init     # tạo bảng (categories, products, admins)
-npm run db:seed     # seed admin + 8 danh mục + 22 sản phẩm túi vải không dệt
-```
-
-> Cả hai script có thể chạy lại nhiều lần. `db:init` dùng `IF NOT EXISTS`, `db:seed` dùng `ON CONFLICT DO ...`.
-
-## Chạy local
-
-```bash
+# Chạy dev server
 npm run dev
 ```
 
-- Frontend + API: <http://localhost:3000>
-- Trang admin: <http://localhost:3000/admin/login> — đăng nhập bằng `ADMIN_USERNAME` / `ADMIN_PASSWORD` trong `.env`.
+Mở [http://localhost:3000](http://localhost:3000) để xem website.
+
+### 3. Đăng nhập admin
+
+- URL: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
+- Mặc định: `admin / admin@123` (đổi trong `.env`)
 
 ---
 
-## Deploy lên Vercel
+## 🎮 Schema DB — Account PUBG fields
 
-1. Đẩy code lên GitHub.
-2. Vào <https://vercel.com> → **Add New Project** → import repo.
-3. Vercel tự nhận diện Next.js (Build Command: `next build`).
-4. **Settings → Environment Variables** thêm:
-   - `DATABASE_URL`
-   - `JWT_SECRET`
-   - `NEXT_PUBLIC_SITE_URL` (vd `https://mintbag.vn`)
-   - `NEXT_PUBLIC_ZALO_PHONE` (hoặc `NEXT_PUBLIC_ZALO_URL`)
-   - `ADMIN_USERNAME`, `ADMIN_PASSWORD`
-5. Bấm **Deploy**.
+Bảng `products` (semantic = "accounts") có các cột PUBG-specific:
 
-Sau khi deploy lần đầu, từ máy local chạy `npm run db:init && npm run db:seed` để khởi tạo dữ liệu lên DB Neon production (vì `.env` của bạn đã trỏ thẳng tới Neon).
+| Cột | Kiểu | Mô tả |
+|---|---|---|
+| `account_code` | varchar(40) | Mã hiển thị buyer (vd `#REPO1024`) |
+| `tier` | varchar(40) | Conqueror / Ace Master / Crown / Diamond / Platinum / Gold / Silver / Bronze |
+| `steam_level` | int | Steam profile level |
+| `pubg_level` | int | PUBG career level |
+| `server` | varchar(20) | AS / SEA / EU / NA / KR/JP / SA / OC / Global |
+| `hours_played` | int | Số giờ đã chơi PUBG |
+| `skin_count` | int | Tổng skin (gun + outfit) |
+| `has_mythic` | bool | Có Glacier / Mythic items không |
+| `register_method` | varchar(40) | Steam Mail / Steam Phone / Steam Full / Other |
+| `gcoin_balance` | int | Số dư G-Coin |
+| `is_sold` | bool | Đã bán chưa (overlay "Đã bán") |
+| `kd_ratio` | numeric(5,2) | K/D ratio |
+| `win_rate` | numeric(5,2) | Win rate % |
 
----
+Field `colors` (kế thừa từ codebase cũ) ở đây dùng làm **skin tags** — vd:
+`["Glacier M416", "AWM Pyromaniac", "Wanderer Set", "PGC 2023 Crown"]`.
 
-## Bộ danh mục mẫu (gồm 22 sản phẩm)
-
-- **Túi quai xách** — Classic 30x40, Mini 25x30, Lớn 40x50
-- **Túi dây rút** — Đa năng 35x45, Mini quà tặng, Balo thể thao
-- **Túi hộp đáy vuông** — Cao cấp 30x35, Trung 25x30, Jumbo 40x45
-- **Túi in logo theo yêu cầu** — In lụa 1 màu, In offset CMYK, In nhiệt
-- **Túi hội nghị & sự kiện** — Tài liệu A4, Cao cấp có khoá kéo
-- **Túi siêu thị & mua sắm** — Eco lớn 45x55, Gấp gọn bỏ túi
-- **Túi thời trang Tote** — MINT Eco Canvas-look, Quote tiếng Anh, Kawaii
-- **Túi quà tặng** — Doanh nghiệp Tết, Cưới hỏi, Noel-Giáng sinh
-
----
-
-## API Endpoints
-
-| Method | Path                       | Auth  | Mô tả                                                              |
-| ------ | -------------------------- | ----- | ------------------------------------------------------------------ |
-| POST   | /api/auth/login            | —     | Đăng nhập admin, trả về JWT                                        |
-| GET    | /api/auth/me               | Admin | Trả về thông tin admin từ token                                    |
-| GET    | /api/categories            | —     | Danh sách danh mục (kèm `product_count`)                           |
-| POST   | /api/categories            | Admin | Tạo danh mục                                                       |
-| GET    | /api/categories/:id        | —     | Lấy 1 danh mục (chấp nhận id hoặc slug)                            |
-| PUT    | /api/categories/:id        | Admin | Cập nhật danh mục                                                  |
-| DELETE | /api/categories/:id        | Admin | Xoá danh mục (cascade xoá sản phẩm)                                |
-| GET    | /api/products?category=&q= | —     | Danh sách sản phẩm. category nhận id hoặc slug; q search theo tên  |
-| POST   | /api/products              | Admin | Tạo sản phẩm                                                       |
-| GET    | /api/products/:id          | —     | Lấy 1 sản phẩm                                                     |
-| PUT    | /api/products/:id          | Admin | Cập nhật sản phẩm                                                  |
-| DELETE | /api/products/:id          | Admin | Xoá sản phẩm                                                       |
-| GET    | /api/products/featured     | —     | Sản phẩm được admin gắn nổi bật                                    |
-| GET    | /api/products/hero         | —     | Sản phẩm hero của trang chủ                                        |
-| GET    | /api/home                  | —     | Bundle dữ liệu trang chủ (categories + products + featured + hero) |
-
-Auth: gửi header `Authorization: Bearer <token>`. Frontend tự lưu token trong `localStorage`.
+> ⚠️ **Lưu ý**: shop chỉ bán **PUBG: BATTLEGROUNDS PC (Steam)** — không bán PUBG Mobile.
+> Skin/item phổ biến PC: Glacier weapons (M416/AKM/AWM/Kar98K/Mk14), Trench Coat,
+> School Skirt, Wanderer Set, Werewolf, PGC Crown, Twitch Drops, Survivor Pass…
+> KHÔNG có: X-Suit, Royal Pass, UC, Mythic Forge — đó là PUBG Mobile.
 
 ---
 
-## Tuỳ biến
+## 🔌 API endpoints
 
-- **Đổi tên thương hiệu**: chỉnh `lib/seo/siteConfig.ts` (`SITE_NAME`, `SITE_TAGLINE`, `SITE_DESCRIPTION`) và logo trong `components/Navbar.tsx`, `components/Footer.tsx`.
-- **Đổi màu chủ đạo**: chỉnh các CSS variables `--mint-*`, `--cream-*`, `--ink-*` ở đầu `app/globals.css`.
-- **Thêm trường vào sản phẩm**: chỉnh `db/schema.sql` (thêm cột) → cập nhật type ở `lib/types.ts` → form admin ở `app/admin/products/page.tsx` → API routes trong `app/api/products/**.ts`.
-- **Đổi tần suất ISR**: đổi `export const revalidate = 60` ở mỗi `app/(public)/.../page.tsx`.
-- **Thêm admin khác**: chạy SQL trên Neon `INSERT INTO admins (username, password_hash) VALUES ('alice', '<bcrypt hash>')`. Tạo hash bằng:
-  ```bash
-  node -e "console.log(require('bcryptjs').hashSync(process.argv[1], 10))" 'mật_khẩu'
-  ```
+| Method | Path | Mô tả |
+|---|---|---|
+| `POST` | `/api/auth/login` | Đăng nhập admin |
+| `GET` | `/api/auth/me` | Thông tin admin hiện tại |
+| `GET` | `/api/categories` | List danh mục |
+| `POST/PUT/DELETE` | `/api/categories[/id]` | CRUD danh mục (admin) |
+| `GET` | `/api/products?category=&q=&tier=&include_sold=` | List acc với filter |
+| `POST` | `/api/products` | Tạo acc (admin) |
+| `GET/PUT/PATCH/DELETE` | `/api/products/[id]` | CRUD acc |
+| `PATCH` | `/api/products/[id]` body `{is_sold: true}` | Đánh dấu đã bán |
+| `GET/PUT` | `/api/products/featured` | Acc tiêu biểu trang chủ |
+| `GET/PUT` | `/api/products/hero` | Acc hero banner |
+| `POST` | `/api/consultations` | Form tìm acc theo yêu cầu |
+| `GET` | `/api/home` | Bundle data trang chủ (1 round-trip) |
 
 ---
 
-## Bản quyền
+## 🎨 Customize
 
-Dự án phát triển nội bộ cho thương hiệu MINT. Tự do sử dụng & chỉnh sửa cho mục đích kinh doanh.
+### Đổi brand (R.E.P.O → S.P.D hoặc tên khác)
+
+Sửa file `lib/seo/siteConfig.ts`:
+
+```ts
+export const SITE_NAME = 'S.P.D';
+export const SITE_FULL_NAME = 'S.P.D — Steam PUBG Direct';
+export const SITE_TAGLINE = '...';
+```
+
+Và `components/Navbar.tsx` (logo `R` → `S`),
+`components/Footer.tsx` (logo `R` → `S`).
+
+### Đổi màu chủ đạo
+
+Sửa CSS variables trong `app/globals.css`, section `:root` ở đầu file:
+
+```css
+:root {
+  --primary: #f5a623;       /* PUBG orange */
+  --accent: #00d4ff;        /* cyan neon */
+  --bg: #0a0e14;            /* dark navy */
+  /* ... */
+}
+```
+
+Toàn bộ site sẽ tự reskin.
+
+### Thêm skin / tier mới
+
+Sửa `lib/utils/tier.ts`:
+
+```ts
+export const ALL_TIERS: PubgTier[] = ['Conqueror', 'Ace Master', ...];
+export const TIER_COLOR: Record<string, string> = { ... };
+```
+
+---
+
+## 📦 Deploy lên Vercel
+
+1. Push code lên GitHub.
+2. Vào [vercel.com](https://vercel.com), New Project, import repo.
+3. Trong Environment Variables, paste đúng các biến từ `.env.example` (đặc biệt
+   `DATABASE_URL`, `JWT_SECRET`, `NEXT_PUBLIC_SITE_URL`).
+4. Deploy. Mỗi khi push branch `main`, Vercel auto-build.
+
+Sau lần deploy đầu, vào Vercel Project Settings → Functions → Cron Jobs để
+add cron `0 */4 * * *` gọi `/api/_warm` (giữ Neon DB không sleep).
+
+---
+
+## ⚠️ Disclaimer
+
+Website là sản phẩm phục vụ mục đích thương mại của shop độc lập — **không
+liên kết** chính thức với KRAFTON / PUBG Studios / Tencent. Mọi quyền sở hữu
+trí tuệ về **PUBG: BATTLEGROUNDS** thuộc về KRAFTON Inc.
+
+Buyer có trách nhiệm tuân thủ ToS của Steam / KRAFTON khi mua acc. R.E.P.O
+không chịu trách nhiệm với acc bị thu hồi do người mua sử dụng cheat / hack /
+share acc cho bên thứ ba.
+
+---
+
+## 📝 License
+
+MIT — Free to fork & customize cho shop của bạn. Có credit là vui :)

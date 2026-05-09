@@ -2,15 +2,26 @@ import 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import { neon } from '@neondatabase/serverless';
 
+/**
+ * Seed dữ liệu mẫu cho R.E.P.O — shop bán account PUBG: BATTLEGROUNDS PC.
+ *
+ * - 1 admin (tài khoản từ env)
+ * - 8 danh mục (theo tier Conqueror→Bronze + nhóm "Glacier", "Mythic", "Starter")
+ * - 25 account thực tế: tên, rank, level, server, skin tag, K/D, win rate, có Mythic
+ *
+ * Toàn bộ dùng UPSERT (ON CONFLICT) nên có thể chạy đi chạy lại an toàn.
+ */
+
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) {
-    console.error('DATABASE_URL chưa được cấu hình.');
+    console.error('DATABASE_URL chưa được cấu hình trong .env');
     process.exit(1);
   }
 
   const sql = neon(url);
 
+  /* ============== 1. Admin ============== */
   const username = process.env.ADMIN_USERNAME || 'admin';
   const password = process.env.ADMIN_PASSWORD || 'admin@123';
   const passwordHash = await bcrypt.hash(password, 10);
@@ -20,67 +31,74 @@ async function main() {
     VALUES (${username}, ${passwordHash})
     ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash
   `;
-  console.log(`Đã tạo/cập nhật admin: ${username}`);
+  console.log(`[1/3] Đã tạo/cập nhật admin: ${username}`);
 
-  /* =====================================================================
-     7 danh mục cho shop túi vải không dệt MINT
-     ===================================================================== */
+  /* ============== 2. Categories ============== */
+  // Ảnh dùng Unsplash gaming/PUBG-style. Có thể đổi qua admin sau.
   const categories: { name: string; slug: string; image_url: string; description: string }[] = [
     {
-      name: 'Túi quai xách (Shopping)',
-      slug: 'tui-quai-xach',
+      name: 'Acc Conqueror',
+      slug: 'acc-conqueror',
       image_url:
-        'https://images.unsplash.com/photo-1591193686104-fddba4d0e4d2?w=900&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=900&auto=format&fit=crop',
       description:
-        'Túi vải không dệt quai xách dáng shopping, thay thế túi nilon dùng một lần. Phù hợp shop bán lẻ, siêu thị, quà tặng.',
+        'Acc Conqueror PUBG: BATTLEGROUNDS — top tier season hiện tại. Đầy đủ skin Glacier, KDR cao, win rate top 1%.',
     },
     {
-      name: 'Túi dây rút',
-      slug: 'tui-day-rut',
+      name: 'Acc Ace · Ace Master',
+      slug: 'acc-ace',
       image_url:
-        'https://images.unsplash.com/photo-1620625515032-6ed0c1790c75?w=900&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=900&auto=format&fit=crop',
       description:
-        'Túi dây rút vải không dệt — gọn nhẹ, tiện đựng giày dép, đồ thể thao, sản phẩm nhỏ.',
+        'Acc Ace / Ace Master — tier cao thứ 2 chỉ sau Conqueror. Phù hợp cho player muốn chiến rank competitive.',
     },
     {
-      name: 'Túi hộp đáy vuông',
-      slug: 'tui-hop-day-vuong',
+      name: 'Acc Crown · Diamond',
+      slug: 'acc-crown-diamond',
       image_url:
-        'https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?w=900&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=900&auto=format&fit=crop',
       description:
-        'Túi hộp đáy vuông giữ form cứng cáp — sang trọng, lý tưởng cho mỹ phẩm, quà tặng cao cấp.',
+        'Acc tier Crown / Diamond — đủ skin & level cao, phù hợp vào ranked mà không quá đắt.',
     },
     {
-      name: 'Túi hội nghị',
-      slug: 'tui-hoi-nghi',
+      name: 'Acc Full Glacier (M416 / AKM / AWM)',
+      slug: 'acc-full-glacier',
       image_url:
-        'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=900&auto=format&fit=crop',
       description:
-        'Túi sự kiện / hội nghị / hội thảo — đựng tài liệu A4, in logo theo bộ nhận diện thương hiệu.',
+        'Acc có đầy đủ bộ Glacier huyền thoại — M416, AKM, AWM Glacier. Skin tier mythic siêu hiếm.',
     },
     {
-      name: 'Túi tote thời trang',
-      slug: 'tui-tote-thoi-trang',
+      name: 'Acc Mythic / Limited Edition',
+      slug: 'acc-mythic-limited',
       image_url:
-        'https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=900&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=900&auto=format&fit=crop',
       description:
-        'Túi tote vải canvas / vải không dệt định lượng cao — phong cách trẻ, đeo vai mỗi ngày.',
+        'Acc PUBG: BATTLEGROUNDS PC có set mythic / limited edition: Wanderer Set, Werewolf, PGC Crown, Pillage Set, Twitch Drops Bronze Crown — chỉ có ở PC, không có ở Mobile.',
     },
     {
-      name: 'Túi quà tặng doanh nghiệp',
-      slug: 'tui-qua-tang-doanh-nghiep',
+      name: 'Acc Starter (giá rẻ)',
+      slug: 'acc-starter-gia-re',
       image_url:
-        'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=900&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1560419015-7c427e8ae5ba?w=900&auto=format&fit=crop',
       description:
-        'Bộ túi quà tặng doanh nghiệp — Tết, tri ân khách hàng, sự kiện. Có thể đặt theo bộ kèm hộp.',
+        'Acc giá rẻ cho người mới — tier Bronze/Silver/Gold, level vừa đủ, phù hợp tập làm quen game.',
     },
     {
-      name: 'Phụ kiện & Mẫu khác',
-      slug: 'phu-kien-va-mau-khac',
+      name: 'Acc Steam Lv cao + Inventory',
+      slug: 'acc-steam-level-cao',
       image_url:
-        'https://images.unsplash.com/photo-1633934542430-0905ccb5f050?w=900&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1551103782-8ab07afd45c1?w=900&auto=format&fit=crop',
       description:
-        'Túi đựng giày, túi đựng laptop, túi vải đa năng và các mẫu túi đặc biệt theo yêu cầu.',
+        'Acc Steam level cao kèm inventory CS:GO / Rust / DOTA2. Hoá ra acc PUBG nhưng giá trị Steam library cao.',
+    },
+    {
+      name: 'Acc Server Riêng (KR/JP, EU, NA)',
+      slug: 'acc-server-rieng',
+      image_url:
+        'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=900&auto=format&fit=crop',
+      description:
+        'Acc đăng ký ở server riêng (Korea/Japan, Europe, North America) — phù hợp player muốn chiến server ít lag, ít cheat.',
     },
   ];
 
@@ -95,279 +113,627 @@ async function main() {
         updated_at = NOW()
     `;
   }
-  console.log(`Đã tạo ${categories.length} danh mục mẫu.`);
+  console.log(`[2/3] Đã tạo ${categories.length} danh mục.`);
 
-  /* =====================================================================
-     22 sản phẩm túi vải không dệt mẫu
-     ===================================================================== */
-  const products: {
+  /* ============== 3. Products (accounts) ============== */
+  type SeedAcc = {
     slug: string;
     name: string;
     description: string;
     price: number;
-    image_url: string;
-    category_slug: string;
     sale_price?: number;
     sale_end_at?: string;
-  }[] = [
-    // ==================== Túi quai xách (Shopping) ====================
+    image_url: string;
+    images?: string[];
+    category_slug: string;
+    colors: string[];                 // skin tags
+    account_code: string;
+    tier: string;
+    steam_level?: number;
+    pubg_level?: number;
+    server: string;
+    hours_played?: number;
+    skin_count?: number;
+    has_mythic?: boolean;
+    register_method: string;
+    gcoin_balance?: number;
+    kd_ratio?: number;
+    win_rate?: number;
+    is_hero?: boolean;
+    featured_rank?: number;
+  };
+
+  const SALE_END = (days: number) =>
+    new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+
+  // Pool ảnh PUBG PC: gaming setup, FPS gameplay, esports tournament, RGB
+  // mechanical keyboard, dark monitor — tone esports gaming PC.
+  // Mọi ảnh từ Unsplash (free) — có thể đổi qua admin panel.
+  const IMG = {
+    pubg1:  'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=1200&auto=format&fit=crop', // PC gaming setup RGB
+    pubg2:  'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=1200&auto=format&fit=crop', // Esports player headset
+    pubg3:  'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=1200&auto=format&fit=crop', // Gaming controller dark
+    pubg4:  'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=1200&auto=format&fit=crop', // Esports arena monitors
+    pubg5:  'https://images.unsplash.com/photo-1542751110-97427bbecf20?w=1200&auto=format&fit=crop', // Gaming PC RGB tower
+    pubg6:  'https://images.unsplash.com/photo-1591840205063-39c7f7e64f12?w=1200&auto=format&fit=crop', // Mechanical keyboard close-up
+    pubg7:  'https://images.unsplash.com/photo-1616588589676-62b3bd4ff6d2?w=1200&auto=format&fit=crop', // Gaming desk dark
+    pubg8:  'https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=1200&auto=format&fit=crop', // Esports gameplay screen
+    pubg9:  'https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=1200&auto=format&fit=crop', // FPS gamer focused
+    pubg10: 'https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=1200&auto=format&fit=crop', // Battle royale aesthetic
+  };
+
+  const products: SeedAcc[] = [
+    // ============== CONQUEROR ==============
     {
-      slug: 'tui-quai-xach-30x40-trang',
-      name: 'Túi quai xách 30×40cm — Vải 70 GSM',
+      slug: 'acc-conqueror-sea-glacier-trinity',
+      name: 'Conqueror SEA — Trinity Glacier (M416 + AKM + AWM)',
       description:
-        'Túi vải không dệt quai xách kích thước 30×40cm, định lượng 70 GSM, màu trắng tinh. In logo 1-2 màu theo yêu cầu. MOQ 100 chiếc.',
-      price: 4500,
-      sale_price: 3800,
-      sale_end_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      image_url:
-        'https://images.unsplash.com/photo-1591193686104-fddba4d0e4d2?w=900&auto=format&fit=crop',
-      category_slug: 'tui-quai-xach',
+        'Acc top server SEA season hiện tại — Conqueror rank #87. Đầy đủ Glacier M416, AKM Glacier Diadem, AWM Pyromaniac. Outfit: Trench Coat full set, Wanderer Set season 27. KDR 5.21, win rate 14.2%. Hotmail full quyền — đăng nhập Steam an toàn vĩnh viễn.',
+      price: 28_500_000,
+      sale_price: 25_900_000,
+      sale_end_at: SALE_END(14),
+      image_url: IMG.pubg1,
+      images: [IMG.pubg1, IMG.pubg4, IMG.pubg5],
+      category_slug: 'acc-conqueror',
+      colors: ['Glacier M416', 'Glacier AWM', 'Wanderer Set', 'Conqueror Title'],
+      account_code: '#REPO1024',
+      tier: 'Conqueror',
+      steam_level: 88,
+      pubg_level: 256,
+      server: 'SEA',
+      hours_played: 2840,
+      skin_count: 187,
+      has_mythic: true,
+      register_method: 'Steam Full',
+      gcoin_balance: 15600,
+      kd_ratio: 5.21,
+      win_rate: 14.2,
+      is_hero: true,
+      featured_rank: 1,
     },
     {
-      slug: 'tui-quai-xach-35x45-mint',
-      name: 'Túi quai xách 35×45cm — Xanh mint',
+      slug: 'acc-conqueror-as-fpp-glacier-m416',
+      name: 'Conqueror AS FPP — Glacier M416 + KDR 4.8',
       description:
-        'Túi shopping vải không dệt 80 GSM, kích thước 35×45cm, màu xanh mint pastel. Phù hợp shop thời trang, mỹ phẩm.',
-      price: 5200,
-      image_url:
-        'https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?w=900&auto=format&fit=crop',
-      category_slug: 'tui-quai-xach',
+        'Acc Conqueror server Asia mode FPP. Glacier M416, AKM Glacier, set Trench Coat đen. Match history toàn top 5. Mua xong là chiến rank ngay.',
+      price: 18_900_000,
+      image_url: IMG.pubg2,
+      images: [IMG.pubg2, IMG.pubg3],
+      category_slug: 'acc-conqueror',
+      colors: ['Glacier M416', 'Glacier AKM', 'Trench Coat'],
+      account_code: '#REPO1031',
+      tier: 'Conqueror',
+      steam_level: 64,
+      pubg_level: 198,
+      server: 'AS',
+      hours_played: 1980,
+      skin_count: 124,
+      has_mythic: true,
+      register_method: 'Steam Mail',
+      gcoin_balance: 8420,
+      kd_ratio: 4.82,
+      win_rate: 12.8,
+      featured_rank: 2,
     },
     {
-      slug: 'tui-quai-xach-25x30-kraft',
-      name: 'Túi quai xách 25×30cm — Nâu kraft',
+      slug: 'acc-conqueror-eu-tpp-collection',
+      name: 'Conqueror EU TPP — Bộ sưu tập 200+ skin',
       description:
-        'Túi shopping nhỏ gọn 25×30cm, màu nâu kraft tự nhiên — tone earthy, đậm chất eco. Lý tưởng cho cửa hàng bánh, cà phê.',
-      price: 3800,
-      sale_price: 3200,
-      sale_end_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-      image_url:
-        'https://images.unsplash.com/photo-1620625515032-6ed0c1790c75?w=900&auto=format&fit=crop',
-      category_slug: 'tui-quai-xach',
-    },
-    {
-      slug: 'tui-quai-xach-40x50-den',
-      name: 'Túi quai xách 40×50cm — Đen size lớn',
-      description:
-        'Túi shopping cỡ lớn 40×50cm, vải 80 GSM, màu đen sang trọng. Tải trọng tới 5kg, đựng tốt sách, đồ nặng.',
-      price: 6500,
-      image_url:
-        'https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=900&auto=format&fit=crop',
-      category_slug: 'tui-quai-xach',
+        'Acc Conqueror server Europe TPP. Bộ skin sưu tập từ season 5: Glacier, Goldfish Kar98K, Hong Kong Kar98K, Diadem AKM, Ribbon Pyromaniac AWM. Ngân sách lớn.',
+      price: 32_000_000,
+      image_url: IMG.pubg3,
+      category_slug: 'acc-conqueror',
+      colors: ['Glacier M416', 'Glacier AWM', 'Goldfish Kar98K', 'Hong Kong Kar98K'],
+      account_code: '#REPO1042',
+      tier: 'Conqueror',
+      steam_level: 102,
+      pubg_level: 312,
+      server: 'EU',
+      hours_played: 3420,
+      skin_count: 213,
+      has_mythic: true,
+      register_method: 'Steam Full',
+      gcoin_balance: 22340,
+      kd_ratio: 4.45,
+      win_rate: 11.6,
+      featured_rank: 3,
     },
 
-    // ==================== Túi dây rút ====================
+    // ============== ACE ==============
     {
-      slug: 'tui-day-rut-30x40-trang',
-      name: 'Túi dây rút 30×40cm — Vải 60 GSM',
+      slug: 'acc-ace-master-sea-fool-m416',
+      name: 'Ace Master SEA — Fool M416 + AWM Pyromaniac',
       description:
-        'Túi dây rút vải không dệt 30×40cm, định lượng 60 GSM. Đựng giày, dụng cụ thể thao, đồ cá nhân khi đi du lịch.',
-      price: 5500,
-      image_url:
-        'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&auto=format&fit=crop',
-      category_slug: 'tui-day-rut',
+        'Acc Ace Master season hiện tại. Có Fool M416 cực hiếm, AWM Pyromaniac, KDR 3.8. Phù hợp cho player muốn lên Conqueror season tới.',
+      price: 12_500_000,
+      sale_price: 10_900_000,
+      sale_end_at: SALE_END(10),
+      image_url: IMG.pubg4,
+      category_slug: 'acc-ace',
+      colors: ['Fool M416', 'Pyromaniac AWM'],
+      account_code: '#REPO1058',
+      tier: 'Ace Master',
+      steam_level: 42,
+      pubg_level: 142,
+      server: 'SEA',
+      hours_played: 1240,
+      skin_count: 98,
+      has_mythic: true,
+      register_method: 'Steam Mail',
+      gcoin_balance: 5210,
+      kd_ratio: 3.84,
+      win_rate: 9.4,
+      featured_rank: 4,
     },
     {
-      slug: 'tui-day-rut-35x45-xanh',
-      name: 'Túi dây rút 35×45cm — Xanh navy',
+      slug: 'acc-ace-dominator-as-budget',
+      name: 'Ace Dominator AS — Acc giá tốt cho ranked',
       description:
-        'Túi dây rút cỡ vừa 35×45cm, màu xanh navy, dây rút bền chắc. Phù hợp làm túi sự kiện, túi quà tặng workshop.',
-      price: 6800,
-      sale_price: 5800,
-      sale_end_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      image_url:
-        'https://images.unsplash.com/photo-1620625515032-6ed0c1790c75?w=900&auto=format&fit=crop',
-      category_slug: 'tui-day-rut',
+        'Acc Ace Dominator server Asia. Skin vừa đủ: Ice Fang M416, Goldfish Kar98K. KDR 3.2. Giá tốt cho người chơi ranked.',
+      price: 5_800_000,
+      image_url: IMG.pubg5,
+      category_slug: 'acc-ace',
+      colors: ['Ice Fang M416', 'Goldfish Kar98K'],
+      account_code: '#REPO1063',
+      tier: 'Ace Dominator',
+      steam_level: 28,
+      pubg_level: 96,
+      server: 'AS',
+      hours_played: 720,
+      skin_count: 56,
+      register_method: 'Steam Mail',
+      gcoin_balance: 1820,
+      kd_ratio: 3.21,
+      win_rate: 7.8,
     },
     {
-      slug: 'tui-day-rut-mini-25x30',
-      name: 'Túi dây rút mini 25×30cm',
+      slug: 'acc-ace-na-tpp-clean',
+      name: 'Ace NA TPP — Acc clean, mới mua',
       description:
-        'Túi dây rút mini đa năng — đựng phụ kiện, sản phẩm nhỏ kèm trong đơn hàng e-commerce. MOQ 200 chiếc.',
-      price: 3500,
-      image_url:
-        'https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?w=900&auto=format&fit=crop',
-      category_slug: 'tui-day-rut',
-    },
-
-    // ==================== Túi hộp đáy vuông ====================
-    {
-      slug: 'tui-hop-day-vuong-25x30x10',
-      name: 'Túi hộp đáy vuông 25×30×10cm',
-      description:
-        'Túi hộp đáy vuông giữ form, kích thước 25×30×10cm, vải 90 GSM cao cấp. Lý tưởng cho mỹ phẩm, hộp quà cao cấp.',
-      price: 8500,
-      image_url:
-        'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=900&auto=format&fit=crop',
-      category_slug: 'tui-hop-day-vuong',
-    },
-    {
-      slug: 'tui-hop-day-vuong-30x40x12-trang',
-      name: 'Túi hộp đáy vuông 30×40×12cm — Trắng',
-      description:
-        'Túi đáy vuông cỡ vừa 30×40×12cm, định lượng 100 GSM, đứng vững khi để trên kệ. Phù hợp showroom, shop quà tặng.',
-      price: 11500,
-      sale_price: 9800,
-      sale_end_at: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-      image_url:
-        'https://images.unsplash.com/photo-1591193686104-fddba4d0e4d2?w=900&auto=format&fit=crop',
-      category_slug: 'tui-hop-day-vuong',
-    },
-    {
-      slug: 'tui-hop-day-vuong-mini-15x20x8',
-      name: 'Túi hộp đáy vuông mini 15×20×8cm',
-      description:
-        'Túi đáy vuông mini, lý tưởng đựng nến thơm, mỹ phẩm sample, phụ kiện nhỏ. In logo dập nóng theo yêu cầu.',
-      price: 6500,
-      image_url:
-        'https://images.unsplash.com/photo-1633934542430-0905ccb5f050?w=900&auto=format&fit=crop',
-      category_slug: 'tui-hop-day-vuong',
-    },
-
-    // ==================== Túi hội nghị ====================
-    {
-      slug: 'tui-hoi-nghi-a4-trang',
-      name: 'Túi hội nghị A4 — Trắng có khoá zip',
-      description:
-        'Túi hội nghị size A4 (35×27×8cm), có khoá zip, vải 80 GSM. Đựng tài liệu, laptop 13", brochure. In logo sự kiện.',
-      price: 12500,
-      sale_price: 10500,
-      sale_end_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-      image_url:
-        'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&auto=format&fit=crop',
-      category_slug: 'tui-hoi-nghi',
-    },
-    {
-      slug: 'tui-hoi-nghi-a4-navy',
-      name: 'Túi hội nghị A4 — Xanh navy có ngăn',
-      description:
-        'Túi hội nghị 2 ngăn riêng cho tài liệu và laptop, màu xanh navy chuyên nghiệp. Quai vai dày, đeo thoải mái cả ngày.',
-      price: 14800,
-      image_url:
-        'https://images.unsplash.com/photo-1620625515032-6ed0c1790c75?w=900&auto=format&fit=crop',
-      category_slug: 'tui-hoi-nghi',
-    },
-    {
-      slug: 'tui-hoi-nghi-quai-deo',
-      name: 'Túi hội nghị quai chéo — Đen',
-      description:
-        'Túi hội thảo dạng quai chéo (sling bag), vải 90 GSM. Phù hợp expo, workshop, sự kiện công nghệ.',
-      price: 16500,
-      image_url:
-        'https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=900&auto=format&fit=crop',
-      category_slug: 'tui-hoi-nghi',
+        'Acc Ace server North America TPP. Profile clean, ít trận, skin cơ bản. Phù hợp player muốn boost lên Ace Master nhanh.',
+      price: 4_200_000,
+      image_url: IMG.pubg6,
+      category_slug: 'acc-ace',
+      colors: ['Diadem AKM'],
+      account_code: '#REPO1071',
+      tier: 'Ace',
+      steam_level: 22,
+      pubg_level: 78,
+      server: 'NA',
+      hours_played: 380,
+      skin_count: 32,
+      register_method: 'Steam Full',
+      gcoin_balance: 980,
+      kd_ratio: 2.94,
+      win_rate: 6.5,
     },
 
-    // ==================== Túi tote thời trang ====================
+    // ============== CROWN / DIAMOND ==============
     {
-      slug: 'tui-tote-canvas-tho',
-      name: 'Túi tote vải canvas thô — Tự nhiên',
+      slug: 'acc-crown-sea-glacier-m416-only',
+      name: 'Crown SEA — Có Glacier M416',
       description:
-        'Túi tote vải canvas thô màu tự nhiên, kích thước 38×42cm. Quai dày bản 4cm, đeo vai thoải mái. In logo thời trang.',
-      price: 22500,
-      sale_price: 18900,
-      sale_end_at: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-      image_url:
-        'https://images.unsplash.com/photo-1591193686104-fddba4d0e4d2?w=900&auto=format&fit=crop',
-      category_slug: 'tui-tote-thoi-trang',
+        'Acc Crown SEA — đặc biệt có Glacier M416 (skin ultimate cấp 7). Cực hiếm ở tier Crown. KDR 2.8.',
+      price: 8_500_000,
+      image_url: IMG.pubg7,
+      category_slug: 'acc-crown-diamond',
+      colors: ['Glacier M416'],
+      account_code: '#REPO1082',
+      tier: 'Crown',
+      steam_level: 35,
+      pubg_level: 110,
+      server: 'SEA',
+      hours_played: 980,
+      skin_count: 78,
+      has_mythic: true,
+      register_method: 'Steam Mail',
+      gcoin_balance: 3240,
+      kd_ratio: 2.84,
+      win_rate: 7.2,
     },
     {
-      slug: 'tui-tote-vai-khong-det-90gsm',
-      name: 'Túi tote vải không dệt 90 GSM — Xanh mint',
+      slug: 'acc-diamond-as-balanced',
+      name: 'Diamond AS — Inventory cân bằng 70 skin',
       description:
-        'Túi tote vải không dệt định lượng cao 90 GSM, màu xanh mint, kích thước 35×40×8cm. Có thể giặt tay nhẹ nhàng.',
-      price: 12500,
-      image_url:
-        'https://images.unsplash.com/photo-1610701596061-2ecf227e85b2?w=900&auto=format&fit=crop',
-      category_slug: 'tui-tote-thoi-trang',
+        'Acc Diamond server Asia. Inventory đa dạng 70+ skin súng & outfit. KDR 2.5, win 6.1%. Acc đẹp, có thể giữ lâu dài.',
+      price: 3_400_000,
+      image_url: IMG.pubg8,
+      category_slug: 'acc-crown-diamond',
+      colors: ['Diadem AKM', 'School Skirt'],
+      account_code: '#REPO1095',
+      tier: 'Diamond',
+      steam_level: 26,
+      pubg_level: 84,
+      server: 'AS',
+      hours_played: 540,
+      skin_count: 71,
+      register_method: 'Steam Mail',
+      gcoin_balance: 1240,
+      kd_ratio: 2.51,
+      win_rate: 6.1,
     },
     {
-      slug: 'tui-tote-canvas-in-print',
-      name: 'Túi tote canvas in print — Custom design',
+      slug: 'acc-diamond-eu-cheap',
+      name: 'Diamond EU — Acc giá rẻ entry-level',
       description:
-        'Túi tote canvas dày dặn, in chuyển nhiệt full màu theo thiết kế của khách. Phù hợp brand thời trang, kỷ niệm sự kiện.',
-      price: 35000,
-      image_url:
-        'https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=900&auto=format&fit=crop',
-      category_slug: 'tui-tote-thoi-trang',
+        'Acc Diamond server Europe — giá entry-level cho người chơi muốn vào ranked Crown. Skin trung bình.',
+      price: 1_900_000,
+      sale_price: 1_650_000,
+      sale_end_at: SALE_END(7),
+      image_url: IMG.pubg9,
+      category_slug: 'acc-crown-diamond',
+      colors: ['Standard M416'],
+      account_code: '#REPO1102',
+      tier: 'Diamond',
+      steam_level: 18,
+      pubg_level: 62,
+      server: 'EU',
+      hours_played: 320,
+      skin_count: 28,
+      register_method: 'Steam Mail',
+      gcoin_balance: 540,
+      kd_ratio: 2.14,
+      win_rate: 5.8,
     },
 
-    // ==================== Túi quà tặng doanh nghiệp ====================
+    // ============== FULL GLACIER ==============
     {
-      slug: 'set-tui-qua-tet-2026',
-      name: 'Set túi quà Tết 2026 — Đỏ vàng',
+      slug: 'acc-full-glacier-trinity-collector',
+      name: 'Full Glacier Trinity — Collector Edition',
       description:
-        'Bộ túi quà Tết doanh nghiệp, màu đỏ-vàng truyền thống, gồm 1 túi lớn + 1 túi nhỏ. In logo công ty 2 màu.',
-      price: 28500,
-      sale_price: 24500,
-      sale_end_at: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-      image_url:
-        'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=900&auto=format&fit=crop',
-      category_slug: 'tui-qua-tang-doanh-nghiep',
+        'Acc collector chỉ tập trung skin: M416 Glacier, AKM Glacier, AWM Glacier (đầy đủ bộ 3). Hệ rank không cao (Diamond) nhưng giá trị inventory tới 35tr.',
+      price: 22_000_000,
+      image_url: IMG.pubg4,
+      category_slug: 'acc-full-glacier',
+      colors: ['Glacier M416', 'Glacier AKM', 'Glacier AWM'],
+      account_code: '#REPO1115',
+      tier: 'Diamond',
+      steam_level: 30,
+      pubg_level: 95,
+      server: 'AS',
+      hours_played: 480,
+      skin_count: 145,
+      has_mythic: true,
+      register_method: 'Steam Full',
+      gcoin_balance: 4820,
+      kd_ratio: 2.6,
+      win_rate: 5.4,
     },
     {
-      slug: 'tui-qua-tang-mini-vuong',
-      name: 'Túi quà tặng vuông 20×20×8cm',
+      slug: 'acc-full-glacier-m416-akm-platinum',
+      name: 'Glacier M416 + AKM — Tier Platinum',
       description:
-        'Túi quà tặng vuông cao cấp, vải 100 GSM, kèm dây ruy băng satin. Đựng nến thơm, hộp tea, mỹ phẩm.',
-      price: 9500,
-      image_url:
-        'https://images.unsplash.com/photo-1633934542430-0905ccb5f050?w=900&auto=format&fit=crop',
-      category_slug: 'tui-qua-tang-doanh-nghiep',
+        'Acc Platinum nhưng có 2 skin Glacier ultimate: M416 và AKM. Phù hợp player chơi casual nhưng yêu skin đẹp.',
+      price: 14_500_000,
+      sale_price: 12_900_000,
+      sale_end_at: SALE_END(12),
+      image_url: IMG.pubg1,
+      category_slug: 'acc-full-glacier',
+      colors: ['Glacier M416', 'Glacier AKM'],
+      account_code: '#REPO1124',
+      tier: 'Platinum',
+      steam_level: 24,
+      pubg_level: 78,
+      server: 'SEA',
+      hours_played: 360,
+      skin_count: 92,
+      has_mythic: true,
+      register_method: 'Steam Mail',
+      gcoin_balance: 2140,
+      kd_ratio: 2.32,
+      win_rate: 4.8,
     },
     {
-      slug: 'tui-qua-tri-an-khach-hang',
-      name: 'Túi tri ân khách hàng VIP — Premium',
+      slug: 'acc-glacier-awm-only-rare',
+      name: 'Glacier AWM Only — Acc sniper',
       description:
-        'Túi tri ân khách VIP, vải gấm cao cấp, in logo mạ vàng. Bao gồm dây nơ và thẻ cảm ơn cá nhân hoá.',
-      price: 45000,
-      image_url:
-        'https://images.unsplash.com/photo-1591193686104-fddba4d0e4d2?w=900&auto=format&fit=crop',
-      category_slug: 'tui-qua-tang-doanh-nghiep',
+        'Acc dành riêng cho dân sniper — có Glacier AWM (skin cực hiếm) + bộ Kar98K Hong Kong. Ngân sách vừa.',
+      price: 9_800_000,
+      image_url: IMG.pubg2,
+      category_slug: 'acc-full-glacier',
+      colors: ['Glacier AWM', 'Hong Kong Kar98K'],
+      account_code: '#REPO1138',
+      tier: 'Crown',
+      steam_level: 28,
+      pubg_level: 84,
+      server: 'AS',
+      hours_played: 620,
+      skin_count: 64,
+      has_mythic: true,
+      register_method: 'Steam Mail',
+      gcoin_balance: 1820,
+      kd_ratio: 3.12,
+      win_rate: 6.4,
     },
 
-    // ==================== Phụ kiện & Mẫu khác ====================
+    // ============== MYTHIC / LIMITED EDITION (PC) ==============
     {
-      slug: 'tui-dung-giay-vai-khong-det',
-      name: 'Túi đựng giày vải không dệt',
+      slug: 'acc-pgc-wanderer-full-mythic',
+      name: 'PGC Crown + Wanderer Set + Full Mythic Outfit',
       description:
-        'Túi đựng giày dạng dây rút, kích thước 35×40cm, có cửa sổ trong suốt nhìn được mẫu giày. Phù hợp shop giày.',
-      price: 6800,
-      image_url:
-        'https://images.unsplash.com/photo-1620625515032-6ed0c1790c75?w=900&auto=format&fit=crop',
-      category_slug: 'phu-kien-va-mau-khac',
+        'Acc collector PUBG PC: PGC 2023 Crown (esports skin chỉ có khi tham gia event PUBG Global Championship), Wanderer Set season 27 (mythic ultimate), Werewolf Halloween. Inventory hiếm có ở thị trường VN.',
+      price: 38_000_000,
+      image_url: IMG.pubg5,
+      images: [IMG.pubg5, IMG.pubg9],
+      category_slug: 'acc-mythic-limited',
+      colors: ['PGC 2023 Crown', 'Wanderer Set', 'Werewolf Set', 'Conqueror Title'],
+      account_code: '#REPO1145',
+      tier: 'Crown',
+      steam_level: 56,
+      pubg_level: 184,
+      server: 'AS',
+      hours_played: 1640,
+      skin_count: 198,
+      has_mythic: true,
+      register_method: 'Steam Full',
+      gcoin_balance: 18420,
+      kd_ratio: 3.24,
+      win_rate: 7.8,
+      featured_rank: 5,
     },
     {
-      slug: 'tui-dung-laptop-15-inch',
-      name: 'Túi đựng laptop 15" — Vải dày',
+      slug: 'acc-trench-coat-rare-set',
+      name: 'Trench Coat — Set hiếm season 4 PC',
       description:
-        'Túi đựng laptop 15", lót bông mỏng chống xước, vải 100 GSM. Có thể in logo công ty làm quà nhân viên.',
-      price: 18500,
-      sale_price: 15500,
-      sale_end_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      image_url:
-        'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&auto=format&fit=crop',
-      category_slug: 'phu-kien-va-mau-khac',
+        'Acc có Trench Coat full set (skin season 4 PUBG PC hiếm — không có ở Mobile), kèm School Skirt + bộ skin gun trung bình. Diamond tier.',
+      price: 4_800_000,
+      image_url: IMG.pubg6,
+      category_slug: 'acc-mythic-limited',
+      colors: ['Trench Coat', 'School Skirt'],
+      account_code: '#REPO1156',
+      tier: 'Diamond',
+      steam_level: 22,
+      pubg_level: 72,
+      server: 'SEA',
+      hours_played: 420,
+      skin_count: 58,
+      has_mythic: true,
+      register_method: 'Steam Mail',
+      gcoin_balance: 980,
+      kd_ratio: 2.42,
+      win_rate: 5.6,
+    },
+
+    // ============== STARTER (giá rẻ) ==============
+    {
+      slug: 'acc-bronze-starter-sea-cheap',
+      name: 'Acc Bronze Starter SEA — Giá tốt nhất',
+      description:
+        'Acc starter mới chiến PUBG. Bronze tier, level 18, vài skin cơ bản. Phù hợp người mới làm quen game.',
+      price: 350_000,
+      image_url: IMG.pubg6,
+      category_slug: 'acc-starter-gia-re',
+      colors: [],
+      account_code: '#REPO1163',
+      tier: 'Bronze',
+      steam_level: 5,
+      pubg_level: 18,
+      server: 'SEA',
+      hours_played: 28,
+      skin_count: 4,
+      register_method: 'Steam Mail',
+      gcoin_balance: 120,
+      kd_ratio: 0.84,
+      win_rate: 2.1,
     },
     {
-      slug: 'tui-vai-da-nang-folding',
-      name: 'Túi vải đa năng gấp gọn',
+      slug: 'acc-silver-fresh-as',
+      name: 'Acc Silver fresh AS — Mua chơi giải trí',
       description:
-        'Túi vải không dệt gấp gọn được vào ví, mở ra thành túi shopping size lớn. Tiện cho khách đi siêu thị.',
-      price: 7500,
-      image_url:
-        'https://images.unsplash.com/photo-1605812860427-4024433a70fd?w=900&auto=format&fit=crop',
-      category_slug: 'phu-kien-va-mau-khac',
+        'Acc Silver server Asia, profile sạch, vài bộ skin cơ bản. Giá tốt cho student / người mới.',
+      price: 480_000,
+      image_url: IMG.pubg10,
+      category_slug: 'acc-starter-gia-re',
+      colors: [],
+      account_code: '#REPO1171',
+      tier: 'Silver',
+      steam_level: 8,
+      pubg_level: 28,
+      server: 'AS',
+      hours_played: 64,
+      skin_count: 8,
+      register_method: 'Steam Mail',
+      gcoin_balance: 240,
+      kd_ratio: 1.18,
+      win_rate: 3.2,
+    },
+    {
+      slug: 'acc-gold-pubg-fresh-na',
+      name: 'Acc Gold NA — Khởi đầu hành trình ranked',
+      description:
+        'Acc Gold server North America. Profile clean, 12 bộ skin cơ bản. Giá phù hợp với học sinh sinh viên.',
+      price: 750_000,
+      sale_price: 620_000,
+      sale_end_at: SALE_END(7),
+      image_url: IMG.pubg7,
+      category_slug: 'acc-starter-gia-re',
+      colors: [],
+      account_code: '#REPO1182',
+      tier: 'Gold',
+      steam_level: 12,
+      pubg_level: 38,
+      server: 'NA',
+      hours_played: 120,
+      skin_count: 14,
+      register_method: 'Steam Mail',
+      gcoin_balance: 380,
+      kd_ratio: 1.48,
+      win_rate: 4.1,
+    },
+    {
+      slug: 'acc-platinum-as-budget',
+      name: 'Acc Platinum AS — Budget',
+      description:
+        'Acc Platinum server Asia, ngân sách thấp. Có 18 skin, KDR 1.8. Phù hợp player solo casual.',
+      price: 1_200_000,
+      image_url: IMG.pubg8,
+      category_slug: 'acc-starter-gia-re',
+      colors: [],
+      account_code: '#REPO1191',
+      tier: 'Platinum',
+      steam_level: 16,
+      pubg_level: 48,
+      server: 'AS',
+      hours_played: 180,
+      skin_count: 18,
+      register_method: 'Steam Mail',
+      gcoin_balance: 480,
+      kd_ratio: 1.82,
+      win_rate: 4.6,
+    },
+
+    // ============== STEAM HIGH LEVEL ==============
+    {
+      slug: 'acc-steam-lv120-pubg-platinum',
+      name: 'Steam Lv 120 — Inventory CS:GO + DOTA2 + PUBG',
+      description:
+        'Acc Steam level 120, có inventory CS:GO (skin AK Redline, Karambit Doppler), DOTA2 immortal items, PUBG Platinum tier. Tổng giá trị inventory > 50tr.',
+      price: 18_500_000,
+      image_url: IMG.pubg9,
+      category_slug: 'acc-steam-level-cao',
+      colors: ['CS:GO Redline AK', 'Karambit Doppler', 'DOTA2 Immortal'],
+      account_code: '#REPO1204',
+      tier: 'Platinum',
+      steam_level: 120,
+      pubg_level: 88,
+      server: 'EU',
+      hours_played: 5240,
+      skin_count: 142,
+      register_method: 'Steam Full',
+      gcoin_balance: 2840,
+      kd_ratio: 2.21,
+      win_rate: 5.4,
+    },
+    {
+      slug: 'acc-steam-lv65-pubg-diamond',
+      name: 'Steam Lv 65 — Acc gaming general + PUBG Diamond',
+      description:
+        'Acc Steam level 65, sở hữu 80+ game (bao gồm Cyberpunk 2077, Elden Ring, GTA V). PUBG tier Diamond.',
+      price: 7_400_000,
+      image_url: IMG.pubg10,
+      category_slug: 'acc-steam-level-cao',
+      colors: ['80+ Steam games'],
+      account_code: '#REPO1212',
+      tier: 'Diamond',
+      steam_level: 65,
+      pubg_level: 72,
+      server: 'AS',
+      hours_played: 2840,
+      skin_count: 64,
+      register_method: 'Steam Mail',
+      gcoin_balance: 1240,
+      kd_ratio: 2.32,
+      win_rate: 5.1,
+    },
+
+    // ============== SERVER RIÊNG ==============
+    {
+      slug: 'acc-kr-jp-server-conqueror',
+      name: 'Acc KR/JP Server — Conqueror',
+      description:
+        'Acc đăng ký server Korea/Japan — server ít cheat nhất PUBG, ping ~30ms từ VN. Conqueror tier, full Glacier M416.',
+      price: 24_000_000,
+      image_url: IMG.pubg1,
+      category_slug: 'acc-server-rieng',
+      colors: ['Glacier M416', 'AWM Glacier'],
+      account_code: '#REPO1224',
+      tier: 'Conqueror',
+      steam_level: 48,
+      pubg_level: 168,
+      server: 'KR/JP',
+      hours_played: 1820,
+      skin_count: 124,
+      has_mythic: true,
+      register_method: 'Steam Full',
+      gcoin_balance: 6240,
+      kd_ratio: 4.18,
+      win_rate: 11.2,
+      featured_rank: 6,
+    },
+    {
+      slug: 'acc-eu-server-ace-fpp',
+      name: 'Acc EU Server FPP — Ace Master',
+      description:
+        'Acc Ace Master server Europe FPP. Phù hợp player muốn chơi FPP competitive ở server EU (giải EMEA).',
+      price: 11_500_000,
+      image_url: IMG.pubg3,
+      category_slug: 'acc-server-rieng',
+      colors: ['Ice Fang M416', 'Goldfish Kar98K'],
+      account_code: '#REPO1233',
+      tier: 'Ace Master',
+      steam_level: 38,
+      pubg_level: 124,
+      server: 'EU',
+      hours_played: 1240,
+      skin_count: 72,
+      register_method: 'Steam Mail',
+      gcoin_balance: 2840,
+      kd_ratio: 3.62,
+      win_rate: 8.4,
+    },
+    {
+      slug: 'acc-na-server-crown-budget',
+      name: 'Acc NA Server — Crown',
+      description:
+        'Acc Crown server North America, budget. Phù hợp player muốn chiến NA mà không tốn quá nhiều.',
+      price: 3_200_000,
+      image_url: IMG.pubg6,
+      category_slug: 'acc-server-rieng',
+      colors: ['Diadem AKM'],
+      account_code: '#REPO1242',
+      tier: 'Crown',
+      steam_level: 18,
+      pubg_level: 64,
+      server: 'NA',
+      hours_played: 380,
+      skin_count: 32,
+      register_method: 'Steam Mail',
+      gcoin_balance: 720,
+      kd_ratio: 2.42,
+      win_rate: 5.8,
+    },
+    {
+      slug: 'acc-sa-server-diamond-cheap',
+      name: 'Acc SA Server — Diamond giá rẻ',
+      description:
+        'Acc Diamond server South America — server ít người chơi, dễ leo rank. Giá rẻ.',
+      price: 1_800_000,
+      sale_price: 1_500_000,
+      sale_end_at: SALE_END(10),
+      image_url: IMG.pubg10,
+      category_slug: 'acc-server-rieng',
+      colors: [],
+      account_code: '#REPO1251',
+      tier: 'Diamond',
+      steam_level: 14,
+      pubg_level: 52,
+      server: 'SA',
+      hours_played: 240,
+      skin_count: 22,
+      register_method: 'Steam Mail',
+      gcoin_balance: 380,
+      kd_ratio: 1.94,
+      win_rate: 4.8,
     },
   ];
 
   for (const p of products) {
-    // Seed mỗi sản phẩm với 1 ảnh — admin có thể thêm ảnh khác qua UI sau.
+    const images = p.images && p.images.length > 0 ? p.images : [p.image_url];
     await sql`
-      INSERT INTO products (category_id, name, slug, description, price, sale_price, sale_end_at, image_url, images)
+      INSERT INTO products (
+        category_id, name, slug, description, price, sale_price, sale_end_at,
+        image_url, images, colors, is_active, is_hero, featured_rank,
+        account_code, tier, steam_level, pubg_level, server,
+        hours_played, skin_count, has_mythic, register_method,
+        gcoin_balance, is_sold, kd_ratio, win_rate
+      )
       SELECT c.id, ${p.name}, ${p.slug}, ${p.description}, ${p.price},
              ${p.sale_price ?? null}, ${p.sale_end_at ?? null},
-             ${p.image_url}, ARRAY[${p.image_url}]::text[]
+             ${p.image_url}, ${images}::text[],
+             ${p.colors}::text[], TRUE, ${p.is_hero ?? false}, ${p.featured_rank ?? null},
+             ${p.account_code}, ${p.tier}, ${p.steam_level ?? null}, ${p.pubg_level ?? null}, ${p.server},
+             ${p.hours_played ?? null}, ${p.skin_count ?? null}, ${p.has_mythic ?? false}, ${p.register_method},
+             ${p.gcoin_balance ?? null}, FALSE, ${p.kd_ratio ?? null}, ${p.win_rate ?? null}
       FROM categories c
       WHERE c.slug = ${p.category_slug}
       ON CONFLICT (slug) DO UPDATE SET
@@ -381,11 +747,27 @@ async function main() {
           WHEN cardinality(products.images) <= 1 THEN EXCLUDED.images
           ELSE products.images
         END,
+        colors = EXCLUDED.colors,
+        is_hero = EXCLUDED.is_hero,
+        featured_rank = EXCLUDED.featured_rank,
+        account_code = EXCLUDED.account_code,
+        tier = EXCLUDED.tier,
+        steam_level = EXCLUDED.steam_level,
+        pubg_level = EXCLUDED.pubg_level,
+        server = EXCLUDED.server,
+        hours_played = EXCLUDED.hours_played,
+        skin_count = EXCLUDED.skin_count,
+        has_mythic = EXCLUDED.has_mythic,
+        register_method = EXCLUDED.register_method,
+        gcoin_balance = EXCLUDED.gcoin_balance,
+        kd_ratio = EXCLUDED.kd_ratio,
+        win_rate = EXCLUDED.win_rate,
         updated_at = NOW()
     `;
   }
-  console.log(`Đã tạo ${products.length} sản phẩm mẫu.`);
-  console.log('Seed hoàn tất.');
+  console.log(`[3/3] Đã tạo ${products.length} account PUBG.`);
+  console.log('\n✓ Seed hoàn tất. Vào http://localhost:3000 để xem website.');
+  console.log(`✓ Admin login: ${username} / ${password} → http://localhost:3000/admin/login`);
 }
 
 main().catch((err) => {

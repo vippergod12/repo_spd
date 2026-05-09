@@ -6,6 +6,10 @@ interface Props {
   totalItems: number;
   pageSize: number;
   onChange: (next: number) => void;
+  /** Khi true, vẫn render khi totalPages = 1 (cho consistent UI). Default false. */
+  alwaysShow?: boolean;
+  /** Nhãn đơn vị item, default "mục". VD: "acc", "danh mục"... */
+  itemLabel?: string;
 }
 
 /**
@@ -28,25 +32,48 @@ function buildPageList(current: number, total: number): Array<number | 'gap'> {
   return pages;
 }
 
-export default function Pagination({ page, totalPages, totalItems, pageSize, onChange }: Props) {
+export default function Pagination({
+  page,
+  totalPages,
+  totalItems,
+  pageSize,
+  onChange,
+  alwaysShow = false,
+  itemLabel = 'mục',
+}: Props) {
+  if (totalItems === 0) return null;
+  if (!alwaysShow && totalPages <= 1) return null;
+
   const items = buildPageList(page, totalPages);
-  const from = (page - 1) * pageSize + 1;
+  const from = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, totalItems);
 
   return (
     <nav className="pagination" aria-label="Phân trang">
       <span className="pagination-info">
-        Hiển thị <strong>{from}</strong>–<strong>{to}</strong> trong tổng <strong>{totalItems}</strong>
+        Hiển thị <strong>{from}</strong>–<strong>{to}</strong> trên tổng{' '}
+        <strong>{totalItems}</strong> {itemLabel}
       </span>
       <div className="pagination-controls">
         <button
           type="button"
-          className="pagination-btn"
+          className="pagination-btn pagination-btn-edge"
+          onClick={() => onChange(1)}
+          disabled={page <= 1}
+          aria-label="Trang đầu"
+          title="Trang đầu"
+        >
+          «
+        </button>
+        <button
+          type="button"
+          className="pagination-btn pagination-btn-edge"
           onClick={() => onChange(page - 1)}
           disabled={page <= 1}
           aria-label="Trang trước"
+          title="Trang trước"
         >
-          ←
+          ‹
         </button>
         {items.map((it, idx) =>
           it === 'gap' ? (
@@ -67,12 +94,23 @@ export default function Pagination({ page, totalPages, totalItems, pageSize, onC
         )}
         <button
           type="button"
-          className="pagination-btn"
+          className="pagination-btn pagination-btn-edge"
           onClick={() => onChange(page + 1)}
           disabled={page >= totalPages}
           aria-label="Trang sau"
+          title="Trang sau"
         >
-          →
+          ›
+        </button>
+        <button
+          type="button"
+          className="pagination-btn pagination-btn-edge"
+          onClick={() => onChange(totalPages)}
+          disabled={page >= totalPages}
+          aria-label="Trang cuối"
+          title="Trang cuối"
+        >
+          »
         </button>
       </div>
     </nav>

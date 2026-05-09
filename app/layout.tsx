@@ -53,18 +53,21 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#128f63',
+  themeColor: '#f5a623',
   width: 'device-width',
   initialScale: 1,
 };
 
-// Google Fonts CSS API tự đính kèm `unicode-range` cho từng subset
-// (latin, latin-ext, vietnamese...). Browser CHỈ tải subset chứa ký tự
-// thực sự render → Vietnamese được lo tự động.
+// Rajdhani / Orbitron: gaming sans-serif (display & numeric) — KHÔNG có
+// Vietnamese subset, browser sẽ fallback per-character cho dấu "ô/ậ/ợ/ằ"
+// → mất đồng nhất. Thêm Be Vietnam Pro (full VN, vibe modern grotesque)
+// làm fallback ưu tiên trước Inter để tone Việt vẫn nhìn nhất quán.
 const GOOGLE_FONTS_HREF =
   'https://fonts.googleapis.com/css2?' +
-  'family=Be+Vietnam+Pro:wght@400;500;600;700&' +
-  'family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700&' +
+  'family=Rajdhani:wght@400;500;600;700&' +
+  'family=Be+Vietnam+Pro:wght@400;500;600;700;800&' +
+  'family=Inter:wght@400;500;600;700&' +
+  'family=Orbitron:wght@500;700;800&' +
   'display=swap';
 
 export default function RootLayout({

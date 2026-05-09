@@ -15,6 +15,7 @@ import {
   absoluteUrl,
 } from '@/lib/seo/siteConfig';
 import { ensureHtml, htmlToPlainText } from '@/lib/server/sanitize-html';
+import { tierClass } from '@/lib/utils/tier';
 
 export const revalidate = 60;
 
@@ -35,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const bundle = await fetchProductDetail(params.slug).catch(() => null);
   if (!bundle?.product) {
     return {
-      title: 'Không tìm thấy sản phẩm',
+      title: 'Không tìm thấy account',
       robots: { index: false, follow: false },
     };
   }
@@ -43,15 +44,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = bundle.product;
   const sale = getSaleInfo(product);
   const priceLabel = formatVnd(sale.effectivePrice);
+  const tierBit = product.tier ? `${product.tier} · ` : '';
   const title = sale.isOnSale
-    ? `${product.name} — Giảm còn ${priceLabel}`
-    : `${product.name} — ${priceLabel}`;
-  // Description từ rich text editor có thể chứa HTML — strip về plain text
-  // cho meta tag (Google không thích raw HTML trong description meta).
+    ? `${tierBit}${product.name} — Giảm còn ${priceLabel}`
+    : `${tierBit}${product.name} — ${priceLabel}`;
   const descriptionText = htmlToPlainText(product.description ?? '').slice(0, 200);
   const description =
     descriptionText ||
-    `${product.name} — giá ${priceLabel}. Mua ngay tại ${SITE_NAME}, danh mục ${product.category_name ?? ''}.`;
+    `Account PUBG: ${product.name}${product.tier ? ` (${product.tier})` : ''} — ${priceLabel}. Bảo hành trọn đời tại ${SITE_NAME}.`;
   const canonical = `/san-pham/${product.slug}`;
   const image = product.image_url ? absoluteUrl(product.image_url) : undefined;
 
@@ -83,8 +83,8 @@ export default async function ProductDetailPage({ params }: Props) {
   const sale = getSaleInfo(product);
   const related = (bundle.related ?? []).slice(0, 12);
   const hot = (bundle.featured ?? []).slice(0, 12);
+  const soldOut = !product.is_active || product.is_sold === true;
 
-  // Backward compat: nếu sản phẩm chưa có mảng images (DB cũ) → dùng image_url đơn.
   const galleryImages =
     Array.isArray(product.images) && product.images.length > 0
       ? product.images
@@ -103,6 +103,19 @@ export default async function ProductDetailPage({ params }: Props) {
       { name: product.name, url: `/san-pham/${product.slug}` },
     ]),
   ];
+
+  /** Hiển thị stat panel: chỉ hiện stat có giá trị. */
+  const stats: Array<{ label: string; value: string; cls?: 'accent' | 'cyan' | 'magenta' }> = [];
+  if (product.tier) stats.push({ label: 'Tier', value: product.tier, cls: 'accent' });
+  if (product.steam_level != null) stats.push({ label: 'Steam Level', value: String(product.steam_level) });
+  if (product.pubg_level != null) stats.push({ label: 'PUBG Level', value: String(product.pubg_level) });
+  if (product.server) stats.push({ label: 'Server', value: product.server });
+  if (product.kd_ratio != null) stats.push({ label: 'K/D Ratio', value: Number(product.kd_ratio).toFixed(2), cls: 'cyan' });
+  if (product.win_rate != null) stats.push({ label: 'Win Rate', value: `${Number(product.win_rate).toFixed(1)}%`, cls: 'cyan' });
+  if (product.hours_played != null) stats.push({ label: 'Giờ chơi', value: `${product.hours_played.toLocaleString('vi-VN')}h` });
+  if (product.skin_count != null) stats.push({ label: 'Tổng Skin', value: String(product.skin_count), cls: 'accent' });
+  if (product.gcoin_balance != null) stats.push({ label: 'G-Coin', value: product.gcoin_balance.toLocaleString('vi-VN') });
+  if (product.register_method) stats.push({ label: 'Loại đăng ký', value: product.register_method });
 
   return (
     <>
@@ -125,21 +138,38 @@ export default async function ProductDetailPage({ params }: Props) {
             <span>{product.name}</span>
           </nav>
 
-          <div className={`product-detail ${!product.is_active ? 'is-soldout' : ''}`}>
+          <div className={`product-detail ${soldOut ? 'is-soldout' : ''}`}>
             <div className="product-detail-media">
               <ProductGallery
                 images={galleryImages}
                 alt={`${product.name}${product.category_name ? ` — ${product.category_name}` : ''} | ${SITE_NAME}`}
               />
               <SaleBadge product={product} />
-              {!product.is_active && (
+              {product.has_mythic && (
+                <span className="mythic-pill" style={{ position: 'absolute', top: 16, left: 16, zIndex: 4 }}>
+                  Mythic
+                </span>
+              )}
+              {soldOut && (
                 <div className="soldout-overlay">
-                  <span>Hết hàng</span>
+                  <span>{product.is_sold ? 'Đã có chủ' : 'Tạm khoá'}</span>
                 </div>
               )}
             </div>
             <div className="product-detail-info">
+              {product.account_code && (
+                <span className="acc-code" style={{ marginBottom: 12 }}>{product.account_code}</span>
+              )}
               <h1>{product.name}</h1>
+
+              {product.tier && (
+                <div style={{ marginTop: 8, marginBottom: 16 }}>
+                  <span className={`tier-badge ${tierClass(product.tier)}`} style={{ fontSize: 13, padding: '6px 14px' }}>
+                    Rank: {product.tier}
+                  </span>
+                </div>
+              )}
+
               {sale.isOnSale ? (
                 <div className="product-detail-price-group">
                   <div className="product-detail-price">{formatVnd(sale.effectivePrice)}</div>
@@ -156,17 +186,45 @@ export default async function ProductDetailPage({ params }: Props) {
               ) : (
                 <div className="product-detail-price">{formatVnd(product.price)}</div>
               )}
+
               {product.description && product.description.trim() ? (
                 <div
                   className="product-detail-description product-description-html"
-                  /* Dữ liệu mới đã sanitize ở server khi lưu; dữ liệu cũ
-                     (plain text seed) được wrap & escape qua ensureHtml. */
                   dangerouslySetInnerHTML={{ __html: ensureHtml(product.description) }}
                 />
               ) : (
                 <p className="product-detail-description product-description-empty">
-                  Chưa có mô tả cho sản phẩm này.
+                  Chưa có mô tả chi tiết. Vui lòng inbox shop để được tư vấn về acc này.
                 </p>
+              )}
+
+              {/* Skin tags (lưu trong product.colors) */}
+              {Array.isArray(product.colors) && product.colors.length > 0 && (
+                <div className="variant-block" style={{ marginTop: 16 }}>
+                  <div className="variant-label"><span>Skin nổi bật</span></div>
+                  <div className="variant-options">
+                    {product.colors.map((tag) => (
+                      <span key={tag} className="variant-chip is-selected" style={{ cursor: 'default' }}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Stat panel */}
+              {stats.length > 0 && (
+                <div className="acc-info">
+                  <h3>Thông số Account</h3>
+                  <ul className="acc-stats">
+                    {stats.map((s) => (
+                      <li key={s.label} className="acc-stat">
+                        <span className="acc-stat-label">{s.label}</span>
+                        <span className={`acc-stat-value ${s.cls ?? ''}`}>{s.value}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
 
               <ProductDetailCta product={product} />
@@ -178,13 +236,13 @@ export default async function ProductDetailPage({ params }: Props) {
                 </div>
                 <div>
                   <span className="meta-label">Tình trạng</span>
-                  <span className={product.is_active ? 'status-on' : 'status-off'}>
-                    {product.is_active ? 'Còn hàng' : 'Hết hàng'}
+                  <span className={!soldOut ? 'status-on' : 'status-off'}>
+                    {soldOut ? (product.is_sold ? 'Đã có chủ' : 'Tạm khoá') : 'Sẵn sàng giao'}
                   </span>
                 </div>
                 <div>
-                  <span className="meta-label">Mã sản phẩm</span>
-                  <span>#{product.id}</span>
+                  <span className="meta-label">Mã acc</span>
+                  <span>{product.account_code ?? `#${product.id}`}</span>
                 </div>
               </div>
             </div>
@@ -194,8 +252,8 @@ export default async function ProductDetailPage({ params }: Props) {
 
       {related.length > 0 && (
         <ProductCarousel
-          eyebrow="Cùng danh mục"
-          title={`Sản phẩm khác trong "${product.category_name}"`}
+          eyebrow="Cùng phân loại"
+          title={`Acc PUBG khác trong "${product.category_name}"`}
           products={related}
         />
       )}

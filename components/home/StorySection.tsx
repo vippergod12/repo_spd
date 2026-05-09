@@ -3,7 +3,6 @@ interface Props {
 }
 
 export default function StorySection({ imageUrl }: Props) {
-  // Fallback gradient khi chưa có ảnh (admin có thể upload qua /admin/story).
   const hasImage = Boolean(imageUrl && imageUrl.length > 0);
 
   return (
@@ -15,27 +14,28 @@ export default function StorySection({ imageUrl }: Props) {
           aria-hidden
         />
         <div className="story-content">
-          <span className="section-eyebrow">Câu chuyện MINT</span>
-          <h2>Mỗi chiếc túi — một bước thay nilon</h2>
+          <span className="section-eyebrow">Câu chuyện R.E.P.O</span>
+          <h2>Mỗi acc — một chặng đường battle royale</h2>
           <p>
-            MINT khởi nguồn từ năm 2014 với một xưởng nhỏ tại TP.HCM, mong muốn
-            đem những chiếc túi vải không dệt giá hợp lý tới các shop bán lẻ
-            Việt — thay thế dần túi nilon dùng một lần. Hơn 10 năm, MINT đã sản
-            xuất hơn 2 triệu chiếc túi cho hàng nghìn thương hiệu, sự kiện và
-            doanh nghiệp trong nước.
+            R.E.P.O bắt đầu từ năm 2021 — khi PUBG: BATTLEGROUNDS chuyển sang
+            free-to-play và cộng đồng PC Việt Nam bùng nổ. Chúng tôi là nhóm
+            game thủ PUBG chuyên nghiệp tự xây kho acc bằng cách <strong>tự cày
+            rank</strong> & thu mua acc từ player cao thủ — rồi chuyển nhượng
+            lại cho game thủ mới muốn sở hữu acc Conqueror, full Glacier
+            mà không phải cày 6 tháng.
           </p>
           <ul className="story-list">
             <li>
-              <strong>Vải không dệt 60–100 GSM</strong>
-              <span>Định lượng đa dạng, mềm dai, chịu tải tốt cho cả túi shopping.</span>
+              <strong>100% acc thật — verify in-game</strong>
+              <span>Mọi acc đều có screenshot inventory, match history, tier mới nhất trước khi lên kệ.</span>
             </li>
             <li>
-              <strong>In logo nhanh — đẹp — bền</strong>
-              <span>In lụa truyền thống, in offset hoặc in chuyển nhiệt theo yêu cầu.</span>
+              <strong>Bảo hành trọn đời</strong>
+              <span>Mất acc do shop = đền 100%. Hỗ trợ đổi mật khẩu, mail, hotmail bất cứ lúc nào.</span>
             </li>
             <li>
-              <strong>MOQ 100 chiếc — báo giá trong 30 phút</strong>
-              <span>Nhận đơn nhỏ cho shop, đơn lớn cho doanh nghiệp & sự kiện.</span>
+              <strong>Giao acc trong 5 phút</strong>
+              <span>Sau khi thanh toán, info acc được gửi qua Telegram / Zalo private chat — không qua bên thứ ba.</span>
             </li>
           </ul>
         </div>

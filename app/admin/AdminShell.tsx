@@ -7,10 +7,10 @@ import { useAuth } from '@/lib/contexts/AuthContext';
 
 const NAV_ITEMS = [
   { href: '/admin/categories', label: 'Danh mục' },
-  { href: '/admin/products', label: 'Sản phẩm' },
-  { href: '/admin/featured', label: 'Tiêu biểu' },
+  { href: '/admin/products', label: 'Account PUBG' },
+  { href: '/admin/featured', label: 'Acc tiêu biểu' },
   { href: '/admin/story', label: 'Câu chuyện' },
-  { href: '/admin/consultations', label: 'Liên hệ' },
+  { href: '/admin/consultations', label: 'Yêu cầu khách' },
 ];
 
 /**
@@ -88,7 +88,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
       <aside className={`admin-sidebar ${sidebarOpen ? 'is-open' : ''}`}>
         <Link href="/" className="admin-brand" onClick={closeSidebar}>
-          <span className="brand-mark">M</span> MINT Admin
+          <span className="brand-mark">R</span> R.E.P.O Admin
         </Link>
         <nav className="admin-nav">
           {NAV_ITEMS.map((item) => {

@@ -96,8 +96,8 @@ export default function AdminCategoriesPage() {
     <div className="admin-page">
       <div className="admin-page-header">
         <div>
-          <h1>Danh mục</h1>
-          <p>Tổ chức sản phẩm theo từng danh mục.</p>
+          <h1>Danh mục Acc</h1>
+          <p>Tổ chức acc PUBG theo từng phân loại (Conqueror, Ace, Glacier...).</p>
         </div>
         <button type="button" className="btn btn-primary" onClick={openCreate}>+ Thêm danh mục</button>
       </div>

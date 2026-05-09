@@ -6,12 +6,32 @@ import { badRequest, jsonOk, unauthorized } from '@/lib/server/http';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const HERO_COLUMNS = `
+  p.id, p.category_id, p.name, p.slug, p.price,
+  p.sale_price, p.sale_end_at,
+  p.image_url, p.images, p.colors,
+  p.is_active, p.is_hero, p.featured_rank,
+  p.account_code, p.tier, p.steam_level, p.pubg_level,
+  p.server, p.hours_played, p.skin_count, p.has_mythic,
+  p.register_method, p.gcoin_balance, p.is_sold,
+  p.kd_ratio, p.win_rate,
+  p.created_at, p.updated_at
+`;
+// (HERO_COLUMNS ở trên chỉ làm tài liệu — không inject runtime vì neon
+// tagged template không hỗ trợ unsafe insert. Cột thực sự được liệt kê
+// trong từng query bên dưới.)
+void HERO_COLUMNS;
+
 export async function GET() {
   const rows = (await sql`
     SELECT p.id, p.category_id, p.name, p.slug, p.price,
            p.sale_price, p.sale_end_at,
            p.image_url, p.images, p.colors,
            p.is_active, p.is_hero, p.featured_rank,
+           p.account_code, p.tier, p.steam_level, p.pubg_level,
+           p.server, p.hours_played, p.skin_count, p.has_mythic,
+           p.register_method, p.gcoin_balance, p.is_sold,
+           p.kd_ratio, p.win_rate,
            p.created_at, p.updated_at,
            c.name AS category_name, c.slug AS category_slug
     FROM products p
@@ -50,7 +70,7 @@ export async function PUT(req: NextRequest) {
     SELECT id FROM products WHERE id = ${id} LIMIT 1
   `) as { id: number }[];
   if (exist.length === 0) {
-    return badRequest('Sản phẩm không tồn tại');
+    return badRequest('Account không tồn tại');
   }
 
   await sql`UPDATE products SET is_hero = FALSE WHERE is_hero = TRUE AND id <> ${id}`;
@@ -61,6 +81,10 @@ export async function PUT(req: NextRequest) {
            p.sale_price, p.sale_end_at,
            p.image_url, p.images, p.colors,
            p.is_active, p.is_hero, p.featured_rank,
+           p.account_code, p.tier, p.steam_level, p.pubg_level,
+           p.server, p.hours_played, p.skin_count, p.has_mythic,
+           p.register_method, p.gcoin_balance, p.is_sold,
+           p.kd_ratio, p.win_rate,
            p.created_at, p.updated_at,
            c.name AS category_name, c.slug AS category_slug
     FROM products p

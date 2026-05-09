@@ -1,124 +1,122 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Product } from '@/lib/types';
 import { formatVnd } from '@/lib/utils/format';
 import { getSaleInfo } from '@/lib/utils/sale';
 import { ZALO_ENABLED, ZALO_URL } from '@/lib/utils/zalo';
+import { TELEGRAM_URL, FACEBOOK_URL } from '@/lib/seo/siteConfig';
 
 interface Props {
   product: Product;
 }
 
-function buildZaloMessage(
-  product: Product,
-  price: number,
-  color: string | null,
-): string {
+function buildOrderMessage(product: Product, price: number): string {
   const url = typeof window !== 'undefined' ? window.location.href : '';
   return [
-    `Xin chào shop, mình muốn mua sản phẩm:`,
+    `Xin chào R.E.P.O Shop, mình muốn mua acc:`,
     `• ${product.name}`,
-    color ? `• Màu: ${color}` : '',
+    product.account_code ? `• Mã acc: ${product.account_code}` : '',
+    product.tier ? `• Rank: ${product.tier}` : '',
     `• Giá: ${formatVnd(price)}`,
     url ? `• Link: ${url}` : '',
+    '',
+    'Vui lòng cho mình xem demo Steam và hướng dẫn thanh toán. Cảm ơn!',
   ]
     .filter(Boolean)
     .join('\n');
 }
 
-async function handleZaloContact(
-  product: Product,
-  price: number,
-  color: string | null,
-) {
-  const message = buildZaloMessage(product, price, color);
+async function copyAndOpen(message: string, openUrl: string) {
   try {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(message);
     }
   } catch {
-    /* bỏ qua nếu clipboard bị chặn */
+    /* ignore clipboard chặn */
   }
-  window.open(ZALO_URL, '_blank', 'noopener,noreferrer');
+  window.open(openUrl, '_blank', 'noopener,noreferrer');
 }
 
 /**
- * Khối CTA tương tác cho trang chi tiết sản phẩm:
- *  - Chọn màu sắc
- *  - Nút "Liên hệ Zalo" (copy nội dung vào clipboard rồi mở Zalo)
- *  - Mobile sticky CTA bar ở dưới cùng màn hình
- *
- * Tách riêng thành Client Component để giữ trang chi tiết là Server Component
- * (cho SSR/ISR + SEO tối đa).
+ * Khối CTA mua acc cho R.E.P.O.
+ * Khác MINT: gamer thường liên hệ qua nhiều kênh (Telegram > Zalo > FB)
+ * → cho 3 nút song song, copy thông tin acc vào clipboard rồi mở chat.
  */
 export default function ProductDetailCta({ product }: Props) {
   const sale = useMemo(() => getSaleInfo(product), [product]);
-  const [selectedColor, setSelectedColor] = useState<string | null>(() =>
-    Array.isArray(product.colors) && product.colors.length === 1
-      ? product.colors[0]
-      : null,
-  );
+  const soldOut = !product.is_active || product.is_sold === true;
+
+  if (soldOut) {
+    return (
+      <div className="product-detail-cta">
+        <button type="button" className="buy-btn buy-btn-primary is-disabled" disabled>
+          {product.is_sold ? 'Acc này đã có chủ' : 'Acc tạm khoá'}
+        </button>
+        <span className="product-detail-cta-hint">
+          Inbox shop để được giới thiệu acc tương tự, hoặc xem các acc bên dưới.
+        </span>
+      </div>
+    );
+  }
+
+  const message = (() => {
+    if (typeof window === 'undefined') return '';
+    return buildOrderMessage(product, sale.effectivePrice);
+  })();
 
   return (
     <>
-      {product.colors && product.colors.length > 0 && (
-        <div className="variant-block">
-          <div className="variant-label">
-            <span>Màu sắc</span>
-            {selectedColor && <em>{selectedColor}</em>}
-          </div>
-          <div className="variant-options">
-            {product.colors.map((c) => (
-              <button
-                type="button"
-                key={c}
-                className={`variant-chip ${selectedColor === c ? 'is-selected' : ''}`}
-                onClick={() => setSelectedColor(selectedColor === c ? null : c)}
-                disabled={!product.is_active}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {product.is_active && ZALO_ENABLED ? (
-        <div className="product-detail-cta">
+      <div className="buy-cta-row">
+        {ZALO_ENABLED && (
           <button
             type="button"
-            className="btn-zalo"
-            onClick={() => handleZaloContact(product, sale.effectivePrice, selectedColor)}
-            aria-label="Liên hệ shop qua Zalo để mua"
+            className="buy-btn buy-btn-zalo"
+            onClick={() => copyAndOpen(buildOrderMessage(product, sale.effectivePrice), ZALO_URL)}
           >
-            <svg viewBox="0 0 64 64" width="22" height="22" aria-hidden>
+            <svg viewBox="0 0 64 64" width="20" height="20" aria-hidden>
               <path
                 fill="currentColor"
-                d="M32 6C16.5 6 4 16.7 4 30c0 7 3.5 13.3 9.2 17.6-.5 2.5-1.7 5.7-4 8 .3.4.8.6 1.4.5 4.3-.5 8.5-2.2 11.5-3.7 3.2.9 6.5 1.4 9.9 1.4 15.5 0 28-10.7 28-24S47.5 6 32 6zm-9.6 28.7h-6.7c-.6 0-1-.4-1-1v-9.5c0-.6.4-1 1-1s1 .4 1 1v8.5h5.7c.6 0 1 .4 1 1s-.4 1-1 1zm5-1c0 .6-.4 1-1 1s-1-.4-1-1v-9.5c0-.6.4-1 1-1s1 .4 1 1v9.5zm9.4 0c0 .6-.4 1-1 1-.3 0-.6-.2-.8-.4l-5-6.6v6c0 .6-.4 1-1 1s-1-.4-1-1v-9.5c0-.6.4-1 1-1 .3 0 .6.2.8.4l5 6.6v-6c0-.6.4-1 1-1s1 .4 1 1v9.5zm10.6 0c0 .3-.2.6-.4.8-.2.2-.4.3-.6.3h-6c-.6 0-1-.4-1-1v-9.5c0-.6.4-1 1-1s1 .4 1 1v8.5h5c.6 0 1 .4 1 .9z"
+                d="M32 6C16.5 6 4 16.7 4 30c0 7 3.5 13.3 9.2 17.6-.5 2.5-1.7 5.7-4 8 .3.4.8.6 1.4.5 4.3-.5 8.5-2.2 11.5-3.7 3.2.9 6.5 1.4 9.9 1.4 15.5 0 28-10.7 28-24S47.5 6 32 6z"
               />
             </svg>
-            Liên hệ ngay để được tư vấn
+            Mua qua Zalo
           </button>
-          <span className="product-detail-cta-hint">
-            {selectedColor
-              ? `Đang chọn màu: ${selectedColor} — thông tin đã copy vào clipboard.`
-              : 'Bấm để mở Zalo — thông tin sản phẩm đã được copy vào clipboard.'}
-          </span>
-        </div>
-      ) : !product.is_active ? (
-        <div className="product-detail-cta">
-          <button type="button" className="btn-zalo is-disabled" disabled>
-            Sản phẩm tạm hết hàng
+        )}
+        {TELEGRAM_URL && (
+          <button
+            type="button"
+            className="buy-btn buy-btn-tg"
+            onClick={() => copyAndOpen(buildOrderMessage(product, sale.effectivePrice), TELEGRAM_URL)}
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+              <path
+                fill="currentColor"
+                d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"
+              />
+            </svg>
+            Telegram
           </button>
-          <span className="product-detail-cta-hint">
-            Vui lòng quay lại sau hoặc xem các sản phẩm tương tự bên dưới.
-          </span>
-        </div>
-      ) : null}
+        )}
+        {FACEBOOK_URL && (
+          <a href={FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="buy-btn buy-btn-fb">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+              <path
+                fill="currentColor"
+                d="M22 12.06C22 6.5 17.52 2 12 2S2 6.5 2 12.06c0 5 3.66 9.14 8.44 9.94v-7.03H7.9v-2.91h2.54V9.84c0-2.51 1.5-3.9 3.78-3.9 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.78-1.63 1.57v1.88h2.78l-.45 2.91h-2.34V22c4.78-.8 8.44-4.94 8.44-9.94z"
+              />
+            </svg>
+            Facebook
+          </a>
+        )}
+      </div>
+      <span className="product-detail-cta-hint" style={{ display: 'block', marginTop: 12, color: 'var(--text-muted)', fontSize: 13 }}>
+        ✓ Click để copy thông tin acc + mở chat. Shop demo Steam in-game trước khi chốt.
+      </span>
 
-      {product.is_active && ZALO_ENABLED && (
-        <div className="mobile-cta-bar" role="region" aria-label="Liên hệ mua hàng">
+      {/* Mobile sticky bar */}
+      {ZALO_ENABLED && (
+        <div className="mobile-cta-bar" role="region" aria-label="Mua acc nhanh">
           <div className="mobile-cta-bar-price">
             {sale.isOnSale ? (
               <>
@@ -131,17 +129,11 @@ export default function ProductDetailCta({ product }: Props) {
           </div>
           <button
             type="button"
-            className="btn-zalo mobile-cta-bar-btn"
-            onClick={() => handleZaloContact(product, sale.effectivePrice, selectedColor)}
-            aria-label="Liên hệ shop qua Zalo để mua"
+            className="buy-btn buy-btn-primary mobile-cta-bar-btn"
+            onClick={() => copyAndOpen(message, ZALO_URL)}
+            aria-label="Mua acc qua Zalo"
           >
-            <svg viewBox="0 0 64 64" width="20" height="20" aria-hidden>
-              <path
-                fill="currentColor"
-                d="M32 6C16.5 6 4 16.7 4 30c0 7 3.5 13.3 9.2 17.6-.5 2.5-1.7 5.7-4 8 .3.4.8.6 1.4.5 4.3-.5 8.5-2.2 11.5-3.7 3.2.9 6.5 1.4 9.9 1.4 15.5 0 28-10.7 28-24S47.5 6 32 6zm-9.6 28.7h-6.7c-.6 0-1-.4-1-1v-9.5c0-.6.4-1 1-1s1 .4 1 1v8.5h5.7c.6 0 1 .4 1 1s-.4 1-1 1zm5-1c0 .6-.4 1-1 1s-1-.4-1-1v-9.5c0-.6.4-1 1-1s1 .4 1 1v9.5zm9.4 0c0 .6-.4 1-1 1-.3 0-.6-.2-.8-.4l-5-6.6v6c0 .6-.4 1-1 1s-1-.4-1-1v-9.5c0-.6.4-1 1-1 .3 0 .6.2.8.4l5 6.6v-6c0-.6.4-1 1-1s1 .4 1 1v9.5zm10.6 0c0 .3-.2.6-.4.8-.2.2-.4.3-.6.3h-6c-.6 0-1-.4-1-1v-9.5c0-.6.4-1 1-1s1 .4 1 1v8.5h5c.6 0 1 .4 1 .9z"
-              />
-            </svg>
-            <span>Mua qua Zalo</span>
+            Mua ngay
           </button>
         </div>
       )}

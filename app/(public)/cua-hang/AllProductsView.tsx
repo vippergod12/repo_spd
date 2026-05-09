@@ -5,8 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { Category, Product } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
 import { getSaleInfo } from '@/lib/utils/sale';
+import { ALL_TIERS, tierClass } from '@/lib/utils/tier';
 
-type SortKey = 'newest' | 'price-asc' | 'price-desc';
+type SortKey = 'newest' | 'price-asc' | 'price-desc' | 'tier-desc';
 
 const PAGE_SIZE = 12;
 
@@ -14,9 +15,25 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'newest', label: 'Mới nhất' },
   { value: 'price-asc', label: 'Giá: Thấp → Cao' },
   { value: 'price-desc', label: 'Giá: Cao → Thấp' },
+  { value: 'tier-desc', label: 'Tier: Conqueror → Bronze' },
 ];
 
 const ALL = 'all';
+const ALL_TIER = '';
+
+const TIER_RANK: Record<string, number> = {
+  Conqueror: 0,
+  'Ace Master': 1,
+  'Ace Dominator': 2,
+  Ace: 3,
+  Crown: 4,
+  Diamond: 5,
+  Platinum: 6,
+  Gold: 7,
+  Silver: 8,
+  Bronze: 9,
+  Unranked: 10,
+};
 
 function effectivePrice(p: Product): number {
   return getSaleInfo(p).effectivePrice;
@@ -28,6 +45,8 @@ function sortProducts(list: Product[], key: SortKey): Product[] {
     arr.sort((a, b) => effectivePrice(a) - effectivePrice(b));
   } else if (key === 'price-desc') {
     arr.sort((a, b) => effectivePrice(b) - effectivePrice(a));
+  } else if (key === 'tier-desc') {
+    arr.sort((a, b) => (TIER_RANK[a.tier ?? ''] ?? 99) - (TIER_RANK[b.tier ?? ''] ?? 99));
   } else {
     arr.sort((a, b) => {
       const ta = a.created_at ? new Date(a.created_at).getTime() : 0;
@@ -45,13 +64,11 @@ interface Props {
 }
 
 /**
- * Phần tương tác của trang /cua-hang:
- *  - Sidebar lọc theo danh mục (push vào URL ?cat=)
- *  - Sort dropdown (push ?sort=)
+ * Trang /cua-hang client interactivity:
+ *  - Sidebar lọc theo danh mục (URL ?cat=)
+ *  - Tier filter chips (URL ?tier=) — đặc trưng PUBG
+ *  - Sort dropdown (URL ?sort=)
  *  - Pagination "Xem thêm"
- *
- * Trang server-rendered đã pre-fetch sản phẩm theo `?cat=` để SEO. Phần sắp
- * xếp / pagination chỉ là tương tác phía client.
  */
 export default function AllProductsView({
   categories,
@@ -62,6 +79,7 @@ export default function AllProductsView({
   const searchParams = useSearchParams();
   const sortRaw = (searchParams.get('sort') || 'newest') as SortKey;
   const sort: SortKey = SORT_OPTIONS.some((o) => o.value === sortRaw) ? sortRaw : 'newest';
+  const tierFilter = (searchParams.get('tier') || ALL_TIER).trim();
 
   const [visible, setVisible] = useState(PAGE_SIZE);
 
@@ -86,7 +104,17 @@ export default function AllProductsView({
     setParam('sort', s);
   }
 
-  const sorted = useMemo(() => sortProducts(products, sort), [products, sort]);
+  function chooseTier(t: string) {
+    setVisible(PAGE_SIZE);
+    setParam('tier', t);
+  }
+
+  const filteredByTier = useMemo(() => {
+    if (!tierFilter) return products;
+    return products.filter((p) => p.tier === tierFilter);
+  }, [products, tierFilter]);
+
+  const sorted = useMemo(() => sortProducts(filteredByTier, sort), [filteredByTier, sort]);
   const shown = sorted.slice(0, visible);
   const hasMore = visible < sorted.length;
 
@@ -131,6 +159,26 @@ export default function AllProductsView({
       </aside>
 
       <div className="all-products-main">
+        <div className="tier-filter" role="tablist" aria-label="Lọc theo rank">
+          <button
+            type="button"
+            className={`tier-chip ${tierFilter === ALL_TIER ? 'active' : ''}`}
+            onClick={() => chooseTier(ALL_TIER)}
+          >
+            Mọi rank
+          </button>
+          {ALL_TIERS.map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={`tier-chip ${tierFilter === t ? 'active' : ''} ${tierClass(t)}`}
+              onClick={() => chooseTier(t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
         <div className="all-products-toolbar">
           <span className="toolbar-info">
             Hiển thị <strong>{shown.length}</strong> / {sorted.length}
@@ -153,7 +201,13 @@ export default function AllProductsView({
         </div>
 
         {sorted.length === 0 ? (
-          <div className="empty-state">Chưa có sản phẩm nào trong mục này.</div>
+          <div className="empty-state">
+            Chưa có acc nào khớp bộ lọc.
+            <br />
+            <a href="/tu-van" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>
+              Đăng ký tìm acc theo yêu cầu →
+            </a>
+          </div>
         ) : (
           <>
             <div className="product-grid all-products-grid">
@@ -167,7 +221,7 @@ export default function AllProductsView({
                 <button type="button" className="btn-load-more" onClick={loadMore}>
                   Xem thêm
                   <span className="load-more-meta">
-                    ({sorted.length - visible} sản phẩm)
+                    ({sorted.length - visible} acc)
                   </span>
                 </button>
               </div>

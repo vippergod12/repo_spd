@@ -1,30 +1,24 @@
 import Reveal from '../Reveal';
 
 /**
- * Section khẳng định MINT là nhà SẢN XUẤT + PHÂN PHỐI TRỰC TIẾP — không qua trung gian.
- *
- * Mục tiêu: gia tăng độ tin cậy ngay above-the-fold (sau Marquee).
- *  - Big stats grid để truyền tải quy mô bằng con số
- *  - Trust badges thể hiện cam kết B2B (KCS, VAT, cam kết giá)
- *  - Có CTA mời báo giá → kết nối với /tu-van
- *
- * Đặt là Server Component (không có state); animation chỉ ở Reveal wrapper.
+ * Section khẳng định R.E.P.O là shop acc PUBG có kho thực tế, có team
+ * chăm sóc 24/7 — không phải bot trung gian. Đặt sau Marquee để build trust
+ * trước khi user xem sản phẩm.
  */
 
 interface Stat {
   num: string;
   label: string;
-  /** Mô tả phụ nhỏ hiện dưới label (tuỳ chọn) */
   hint?: string;
 }
 
 const STATS: Stat[] = [
-  { num: '12+', label: 'Năm sản xuất', hint: 'Khởi nguồn từ 2014' },
-  { num: '2.000+', label: 'Thương hiệu đã phục vụ', hint: 'Shop, doanh nghiệp & sự kiện' },
-  { num: '5.000', label: 'm² nhà xưởng', hint: 'Tại TP.HCM' },
-  { num: '50.000+', label: 'Túi / tháng', hint: 'Năng lực sản xuất' },
-  { num: '63/63', label: 'Tỉnh thành phân phối', hint: 'Giao toàn quốc 1–3 ngày' },
-  { num: '30 phút', label: 'Báo giá miễn phí', hint: 'Phản hồi qua Zalo / điện thoại' },
+  { num: '500+', label: 'Acc trong kho', hint: 'Tự cày + thu mua' },
+  { num: '10.000+', label: 'Khách hàng', hint: 'Trên toàn quốc từ 2021' },
+  { num: '99.7%', label: 'Tỷ lệ giao dịch thành công', hint: '0.3% còn lại được hoàn tiền' },
+  { num: '5 phút', label: 'Giao acc trung bình', hint: 'Sau khi nhận thanh toán' },
+  { num: '24/7', label: 'Hỗ trợ', hint: 'Telegram / Zalo / FB Messenger' },
+  { num: '∞', label: 'Bảo hành', hint: 'Trọn đời, đền 100% nếu mất acc' },
 ];
 
 interface Pillar {
@@ -36,18 +30,18 @@ interface Pillar {
 const PILLARS: Pillar[] = [
   {
     mark: '◇',
-    title: 'Trực tiếp từ xưởng',
-    body: 'Không qua đại lý — giá tốt hơn 30–40% so với mua qua trung gian.',
+    title: 'Acc thật — verify in-game',
+    body: 'Mọi acc đều có screenshot inventory + match history. Demo trực tiếp Steam trước khi chốt.',
   },
   {
     mark: '◆',
-    title: 'KCS 100% sản phẩm',
-    body: 'Kiểm định chất lượng từng lô trước giao — đường may, in ấn, kích thước.',
+    title: 'Full mail · đổi mật khẩu thoải mái',
+    body: 'Mọi acc bán đều giao kèm hotmail full quyền — bạn tự đổi pass + 2FA, an toàn vĩnh viễn.',
   },
   {
     mark: '○',
-    title: 'Hoá đơn VAT đầy đủ',
-    body: 'Hỗ trợ doanh nghiệp xuất hoá đơn đỏ, hợp đồng dài hạn, công nợ.',
+    title: 'Bảo hành trọn đời',
+    body: 'Acc bị thu hồi do shop = đền 100%. Hỗ trợ recover acc 24/7 qua Telegram private chat.',
   },
 ];
 
@@ -57,18 +51,17 @@ export default function ManufacturerTrust() {
       <div className="container">
         <Reveal variant="fade-up">
           <header className="trust-head">
-            <span className="section-eyebrow">● Xưởng sản xuất trực tiếp</span>
+            <span className="section-eyebrow">● Shop acc PUBG uy tín #1 VN</span>
             <h2 className="trust-head-title">
-              <span>Nhà sản xuất &amp;</span>
-              <em>nhà phân phối</em>
-              <span>túi vải không dệt</span>
+              <span>Kho acc thực tế &amp;</span>
+              <em>đội chăm sóc</em>
+              <span>chuyên PUBG PC</span>
             </h2>
             <p className="trust-head-lead">
-              MINT là <strong>xưởng sản xuất trực tiếp</strong> kiêm{' '}
-              <strong>nhà phân phối</strong> túi vải không dệt tại Việt Nam. Không
-              qua trung gian — bạn được giá tốt nhất, kiểm soát chất lượng tới
-              từng đường may, và thời gian giao hàng nhanh hơn 2–3 lần so với
-              mua qua đại lý.
+              R.E.P.O không phải shop trung gian — chúng tôi <strong>tự cày
+              acc</strong> và <strong>thu mua trực tiếp</strong> từ player cao
+              thủ Việt Nam. Mọi acc đều được verify in-game, có demo Steam,
+              giao acc kèm hotmail full quyền và bảo hành trọn đời.
             </p>
           </header>
         </Reveal>
@@ -103,11 +96,11 @@ export default function ManufacturerTrust() {
 
         <Reveal variant="fade-up" delay={280}>
           <div className="trust-cta">
-            <a href="/tu-van" className="trust-cta-primary">
-              Nhận báo giá xưởng &nbsp;↗
+            <a href="/cua-hang" className="trust-cta-primary">
+              Xem kho acc &nbsp;↗
             </a>
-            <a href="/gioi-thieu" className="trust-cta-ghost">
-              Câu chuyện 12 năm MINT
+            <a href="/bao-hanh" className="trust-cta-ghost">
+              Cam kết bảo hành
             </a>
           </div>
         </Reveal>

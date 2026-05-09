@@ -3,13 +3,13 @@ import ConsultationForm from '@/components/consultation/ConsultationForm';
 import { HOTLINE, SITE_NAME } from '@/lib/seo/siteConfig';
 
 export const metadata: Metadata = {
-  title: `Báo giá / Đặt hàng — ${SITE_NAME}`,
+  title: `Tìm acc theo yêu cầu — ${SITE_NAME}`,
   description:
-    'Để lại số điện thoại — đội ngũ MINT sẽ tư vấn chọn vải, kích thước, in logo và báo giá chi tiết trong vòng 30 phút (giờ hành chính).',
+    'Để lại số điện thoại — đội R.E.P.O sẽ tư vấn chọn acc PUBG phù hợp ngân sách, rank, skin yêu cầu và liên hệ trong vòng 30 phút (giờ hành chính).',
   alternates: { canonical: '/tu-van' },
   openGraph: {
-    title: `Báo giá / Đặt hàng túi vải không dệt — ${SITE_NAME}`,
-    description: 'Báo giá miễn phí trong 30 phút cùng chuyên viên MINT.',
+    title: `Tìm acc PUBG theo yêu cầu — ${SITE_NAME}`,
+    description: 'Đăng ký tìm acc PUBG theo nhu cầu — phản hồi trong 30 phút.',
     url: '/tu-van',
     type: 'website',
   },
@@ -22,17 +22,16 @@ export default function ConsultationPage() {
     <div className="consult-page">
       <section className="consult-section">
         <div className="container consult-grid">
-          {/* Cột trái: thông điệp + lý do nên đăng ký */}
           <div className="consult-intro">
-            <span className="consult-eyebrow">— Tư vấn & báo giá 1:1 —</span>
+            <span className="consult-eyebrow">— Tìm acc theo yêu cầu —</span>
             <h1 className="consult-title">
-              Để chúng tôi <em>báo giá</em> cho lô túi của bạn
+              Không tìm thấy acc <em>vừa ý?</em>
             </h1>
             <p className="consult-lead">
-              Mỗi đơn hàng có yêu cầu riêng — kích thước, định lượng vải, kiểu
-              quai, cách in logo. Để lại số điện thoại, chuyên viên MINT sẽ
-              gọi bạn trong vòng <strong>30 phút</strong> (giờ hành chính)
-              để tư vấn và gửi báo giá chi tiết qua Zalo.
+              Để lại số điện thoại + mô tả ngắn về acc bạn cần (rank, skin,
+              ngân sách). Đội R.E.P.O sẽ săn acc theo đúng yêu cầu và liên hệ
+              lại trong <strong>30 phút</strong> (giờ hành chính). Kho acc của
+              shop được bổ sung mỗi ngày — luôn có hàng đúng nhu cầu.
             </p>
 
             <ul className="consult-perks">
@@ -41,8 +40,8 @@ export default function ConsultationPage() {
                   {'◆\uFE0E'}
                 </span>
                 <div>
-                  <strong>Báo giá miễn phí, không ràng buộc</strong>
-                  <span>Bạn không cần đặt hàng ngay sau khi nhận báo giá.</span>
+                  <strong>Tư vấn miễn phí, không ràng buộc</strong>
+                  <span>Bạn chỉ thanh toán khi đồng ý acc cụ thể.</span>
                 </div>
               </li>
               <li>
@@ -50,8 +49,8 @@ export default function ConsultationPage() {
                   {'◆\uFE0E'}
                 </span>
                 <div>
-                  <strong>Chuyên viên hiểu xưởng — báo giá chuẩn</strong>
-                  <span>Tư vấn chọn vải 60–100 GSM, kiểu in phù hợp ngân sách.</span>
+                  <strong>Săn acc Glacier · Mythic PC theo yêu cầu</strong>
+                  <span>M416 Glacier, AKM Glacier, AWM Pyromaniac, Wanderer Set, PGC Crown — chỉ acc PC chính chủ.</span>
                 </div>
               </li>
               <li>
@@ -60,18 +59,17 @@ export default function ConsultationPage() {
                 </span>
                 <div>
                   <strong>Bảo mật tuyệt đối</strong>
-                  <span>Số điện thoại của bạn chỉ dùng cho mục đích báo giá.</span>
+                  <span>SĐT chỉ dùng để liên hệ tư vấn — không spam, không chia sẻ.</span>
                 </div>
               </li>
             </ul>
 
             <div className="consult-hotline">
-              <span>Hoặc gọi trực tiếp:</span>
+              <span>Hoặc inbox trực tiếp:</span>
               <a href={telHref}>{HOTLINE}</a>
             </div>
           </div>
 
-          {/* Cột phải: form */}
           <div className="consult-form-wrap">
             <ConsultationForm />
           </div>

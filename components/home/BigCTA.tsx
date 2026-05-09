@@ -8,15 +8,15 @@ export default function BigCTA() {
       <Reveal variant="fade-up">
         <div className="container cta-grid">
           <h2>
-            <span>Một chiếc túi</span>
-            <span className="cta-italic">cho thương hiệu</span>
-            <span>của bạn.</span>
+            <span>Một acc PUBG</span>
+            <span className="cta-italic">cho chiến binh</span>
+            <span>battlegrounds.</span>
           </h2>
           <a
             href="/tu-van"
             className="cta-link"
           >
-            Nhận báo giá miễn phí ↗
+            Tìm acc theo yêu cầu ↗
           </a>
         </div>
       </Reveal>

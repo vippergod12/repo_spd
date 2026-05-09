@@ -7,6 +7,8 @@ import type { Product } from '@/lib/types';
 import Reveal from '../Reveal';
 import { PriceDisplay, SaleBadge } from '../SaleBadge';
 import { DEFAULT_BLUR_DATA_URL } from '@/lib/utils/blur';
+import { tierClass } from '@/lib/utils/tier';
+import { AccountMetaStrip } from '../ProductCard';
 
 interface Props {
   products: Product[];
@@ -15,8 +17,6 @@ interface Props {
 
 const NEW_DAYS = 14;
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
-
-/** Số sản phẩm mỗi lần "Xem thêm" — 2 hàng × 4 cột = 8. */
 const PAGE_SIZE = 8;
 
 function isNew(createdAt?: string): boolean {
@@ -26,7 +26,6 @@ function isNew(createdAt?: string): boolean {
 }
 
 export default function TrendingGrid({ products, loading }: Props) {
-  /** Sort 1 lần theo created_at desc, memo để không sort lại mỗi lần "Xem thêm". */
   const sorted = useMemo(
     () =>
       [...products].sort((a, b) => {
@@ -51,11 +50,11 @@ export default function TrendingGrid({ products, loading }: Props) {
         <Reveal variant="fade-up">
           <div className="trending-heading">
             <div className="trending-heading-text">
-              <span className="section-eyebrow">Vừa cập kệ</span>
-              <h2>Sản phẩm mới</h2>
+              <span className="section-eyebrow">Vừa cập nhật</span>
+              <h2>Acc PUBG mới về</h2>
             </div>
             <Link href="/cua-hang" className="trending-link">
-              Xem toàn bộ sản phẩm
+              Xem toàn bộ kho acc
               <span aria-hidden>→</span>
             </Link>
           </div>
@@ -64,7 +63,7 @@ export default function TrendingGrid({ products, loading }: Props) {
         {loading ? (
           <div className="empty-state">Đang tải...</div>
         ) : items.length === 0 ? (
-          <div className="empty-state">Chưa có sản phẩm.</div>
+          <div className="empty-state">Chưa có acc nào.</div>
         ) : (
           <>
             <div className="trending-grid">
@@ -72,16 +71,16 @@ export default function TrendingGrid({ products, loading }: Props) {
                 const altText = p.category_name
                   ? `${p.name} — ${p.category_name}`
                   : p.name;
-                /* Stagger reveal trong từng "đợt" 8 cái — đợt mới load lại bắt đầu từ 0ms */
                 const staggerDelay = (i % PAGE_SIZE) * 70;
+                const soldOut = !p.is_active || p.is_sold === true;
                 return (
                   <Reveal key={p.id} variant="fade-up" delay={staggerDelay}>
                     <Link
                       href={`/san-pham/${p.slug}`}
-                      className={`trending-card ${!p.is_active ? 'is-soldout' : ''}`}
+                      className={`product-card trending-card ${soldOut ? 'is-soldout' : ''}`}
                       draggable={false}
                     >
-                      <div className="trending-image">
+                      <div className="product-card-thumb">
                         {p.image_url ? (
                           <Image
                             src={p.image_url}
@@ -92,27 +91,44 @@ export default function TrendingGrid({ products, loading }: Props) {
                             quality={80}
                             placeholder="blur"
                             blurDataURL={DEFAULT_BLUR_DATA_URL}
-                            className="trending-image-img"
+                            className="product-card-img"
                             draggable={false}
                           />
                         ) : (
                           <div className="product-card-placeholder">No image</div>
                         )}
-                        {p.is_active ? (
-                          <SaleBadge product={p} />
-                        ) : (
-                          <div className="soldout-overlay">
-                            <span>Hết hàng</span>
-                          </div>
-                        )}
-                        {p.is_active && isNew(p.created_at) && (
+                        {!soldOut && <SaleBadge product={p} />}
+                        {!soldOut && isNew(p.created_at) && (
                           <span className="trending-badge">MỚI</span>
                         )}
+                        {!soldOut && p.has_mythic && (
+                          <span className="mythic-pill mythic-pill-corner">Mythic</span>
+                        )}
+                        {soldOut && (
+                          <div className="soldout-overlay">
+                            <span>{p.is_sold ? 'Đã bán' : 'Tạm khoá'}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="trending-meta">
-                        <span className="trending-cat">{p.category_name ?? ''}</span>
-                        <h3>{p.name}</h3>
-                        <PriceDisplay product={p} className="trending-price" showEndDate />
+                      <div className="product-card-body">
+                        <div className="product-card-meta-top">
+                          {p.account_code ? (
+                            <span className="acc-code">{p.account_code}</span>
+                          ) : (
+                            <span className="acc-code-placeholder" aria-hidden />
+                          )}
+                        </div>
+                        <span className="product-card-category">
+                          {p.category_name ?? '\u00A0'}
+                        </span>
+                        <h3 className="product-card-name">{p.name}</h3>
+                        <PriceDisplay product={p} className="product-card-price" showEndDate />
+                        <AccountMetaStrip product={p} />
+                        <div className="product-card-tier-row">
+                          {p.tier && (
+                            <span className={`tier-badge ${tierClass(p.tier)}`}>{p.tier}</span>
+                          )}
+                        </div>
                       </div>
                     </Link>
                   </Reveal>
@@ -127,7 +143,7 @@ export default function TrendingGrid({ products, loading }: Props) {
                   className="trending-load-more"
                   onClick={loadMore}
                 >
-                  <span>Xem thêm</span>
+                  <span>Xem thêm acc</span>
                   <svg
                     width="14"
                     height="14"
@@ -143,7 +159,7 @@ export default function TrendingGrid({ products, loading }: Props) {
                   </svg>
                 </button>
                 <p className="trending-load-more-hint">
-                  Đã hiện {visibleCount} / {sorted.length} sản phẩm
+                  Đã hiện {visibleCount} / {sorted.length} acc
                 </p>
               </div>
             )}
